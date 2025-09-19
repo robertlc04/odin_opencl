@@ -9,4 +9,4 @@ A basic Wrapper for OpenCL
 - Opencl
 
 # Important
-This code it's "based"(almost copied) on the [odin-gl](https://github.com/vassvik/odin-gl)
+This code it's "based"(almost copied) from [odin-gl](https://github.com/vassvik/odin-gl)
