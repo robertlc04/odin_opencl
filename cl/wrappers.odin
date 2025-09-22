@@ -605,6 +605,48 @@ EnqueueWriteImage :: #force_inline proc "c" (
 }
 
 
+/* Event Object APIs */
+WaitForEvents :: #force_inline proc "c" (num_events: u32, event_list: [^]Event) -> i32 {
+	return impl_WaitForEvents(num_events, event_list)
+}
+
+GetEventInfo :: #force_inline proc "c" (
+	event: Event,
+	param_name: EventInfo,
+	param_value_size: uint,
+	param_value: rawptr,
+	param_value_size_ret: ^uint,
+) -> i32 {
+	return impl_GetEventInfo(
+		event,
+		param_name,
+		param_value_size,
+		param_value,
+		param_value_size_ret,
+	)
+}
+
+RetainEvent :: #force_inline proc "c" (event: Event) -> i32 {return impl_RetainEvent(event)}
+ReleaseEvent :: #force_inline proc "c" (event: Event) -> i32 {return impl_ReleaseEvent(event)}
+
+/* Profiling APIs */
+GetEventProfilingInfo :: #force_inline proc "c" (
+	event: Event,
+	param_name: ProfilingInfo,
+	param_value_size: uint,
+	param_value: rawptr,
+	param_value_size_ret: ^uint,
+) -> i32 {
+	return impl_GetEventProfilingInfo(
+		event,
+		param_name,
+		param_value_size,
+		param_value,
+		param_value_size_ret,
+	)
+}
+
+
 /* Flush and Finish APIs */
 Flush :: #force_inline proc "c" (command_queue: CommandQueue) -> i32 {return impl_Flush(
 		command_queue,
@@ -714,6 +756,28 @@ EnqueueCopyBufferRect :: #force_inline proc "c" (
 		event_wait_list,
 		event,
 	)
+}
+
+
+/* Event Object APIs */
+
+CreateUserEvent :: #force_inline proc "c" (
+	cl_context: Context,
+	errcode_ret: ^i32,
+) -> Event {return impl_CreateUserEvent(cl_context, errcode_ret)}
+
+SetUserEventStatus :: #force_inline proc "c" (
+	event: Event,
+	execution_status: i32,
+) -> i32 {return impl_SetUserEventStatus(event, execution_status)}
+
+SetEventCallback :: #force_inline proc "c" (
+	event: Event,
+	command_exec_callback_type: i32,
+	pfn_notify: EventCallback,
+	user_data: rawptr,
+) -> i32 {
+	return impl_SetEventCallback(event, command_exec_callback_type, pfn_notify, user_data)
 }
 
 
@@ -1134,3 +1198,4 @@ CreateBufferWithProperties :: #force_inline proc "c" (
 		errcode_ret,
 	)
 }
+

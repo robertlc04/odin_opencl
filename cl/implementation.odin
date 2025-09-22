@@ -94,6 +94,8 @@ MemFreeCallback :: #type proc "system" (
 	user_data: rawptr,
 )
 
+EventCallback :: #type proc "system" (event: Event, event_command_status: i32, user_data: rawptr)
+
 // CL_VERSION_1_0
 
 // Platform
@@ -426,6 +428,28 @@ impl_EnqueueWriteImage: proc "c" (
 ) -> i32
 
 
+/* Event Object APIs */
+impl_WaitForEvents: proc "c" (num_events: u32, event_list: [^]Event) -> i32
+impl_GetEventInfo: proc "c" (
+	event: Event,
+	param_name: EventInfo,
+	param_value_size: uint,
+	param_value: rawptr,
+	param_value_size_ret: ^uint,
+) -> i32
+impl_RetainEvent: proc "c" (event: Event) -> i32
+impl_ReleaseEvent: proc "c" (event: Event) -> i32
+
+/* Profiling APIs */
+impl_GetEventProfilingInfo: proc "c" (
+	event: Event,
+	param_name: ProfilingInfo,
+	param_value_size: uint,
+	param_value: rawptr,
+	param_value_size_ret: ^uint,
+) -> i32
+
+
 /* Flush and Finish APIs */
 impl_Flush: proc "c" (command_queue: CommandQueue) -> i32
 impl_Finish: proc "c" (command_queue: CommandQueue) -> i32
@@ -492,6 +516,13 @@ load_1_0 :: proc(set_proc_address: Set_Proc_Address_Type) {
 	set_proc_address(&impl_EnqueueReadImage, "clEnqueueReadImage")
 	set_proc_address(&impl_EnqueueWriteImage, "clEnqueueWriteImage")
 
+	set_proc_address(&impl_WaitForEvents, "clWaitForEvents")
+	set_proc_address(&impl_GetEventInfo, "clGetEventInfo")
+	set_proc_address(&impl_RetainEvent, "clRetainEvent")
+	set_proc_address(&impl_ReleaseEvent, "clReleaseEvent")
+
+	set_proc_address(&impl_GetEventProfilingInfo, "clGetEventProfilingInfo")
+
 	set_proc_address(&impl_Flush, "clFlush")
 	set_proc_address(&impl_Finish, "clFinish")
 }
@@ -546,10 +577,27 @@ impl_EnqueueCopyBufferRect: proc "c" (
 	event: Event,
 ) -> i32
 
+
+/* Event Object APIs */
+
+impl_CreateUserEvent: proc "c" (cl_context: Context, errcode_ret: ^i32) -> Event
+impl_SetUserEventStatus: proc "c" (event: Event, execution_status: i32) -> i32
+impl_SetEventCallback: proc "c" (
+	event: Event,
+	command_exec_callback_type: i32,
+	pfn_notify: EventCallback,
+	user_data: rawptr,
+) -> i32
+
+
 load_1_1 :: proc(set_proc_address: Set_Proc_Address_Type) {
 	set_proc_address(&impl_EnqueueReadBufferRect, "clEnqueueReadBufferRect")
 	set_proc_address(&impl_EnqueueWriteBufferRect, "clEnqueueWriteBufferRect")
 	set_proc_address(&impl_EnqueueCopyBufferRect, "clEnqueueCopyBufferRect")
+
+	set_proc_address(&impl_CreateUserEvent, "clCreateUserEvent")
+	set_proc_address(&impl_SetUserEventStatus, "clSetUserEventStatus")
+	set_proc_address(&impl_SetEventCallback, "clSetEventCallback")
 }
 
 // CL_VERSION_1_2
@@ -814,3 +862,4 @@ impl_CreateBufferWithProperties: proc "c" (
 load_3_0 :: proc(set_proc_address: Set_Proc_Address_Type) {
 	set_proc_address(&impl_CreateBufferWithProperties, "clCreateBufferWithProperties")
 }
+
