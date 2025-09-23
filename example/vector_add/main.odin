@@ -4,7 +4,7 @@ import "core:c"
 import "core:fmt"
 import "core:log"
 
-import "../cl"
+import "../../cl"
 
 
 init_platform :: proc(platform: ^cl.PlatformId) {
@@ -152,3 +152,4 @@ main :: proc() {
 	defer cl.ReleaseMemObject(buffer_c)
 
 }
+
