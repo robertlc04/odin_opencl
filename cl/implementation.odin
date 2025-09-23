@@ -120,7 +120,7 @@ impl_GetDeviceIDs: proc "c" (
 	platform: PlatformId,
 	device_type: DeviceType,
 	num_entries: u32,
-	devices: ^DeviceId,
+	devices: [^]DeviceId,
 	num_devices: ^u32,
 ) -> i32
 
@@ -136,7 +136,7 @@ impl_GetDeviceInfo: proc "c" (
 impl_CreateContext: proc "c" (
 	properties: ^ContextProperties,
 	num_devices: u32,
-	devices: ^DeviceId,
+	devices: [^]DeviceId,
 	pfn_notify: ^CreateContextCallback,
 	user_data: rawptr,
 	errcode_ret: ^i32,
@@ -286,7 +286,7 @@ impl_EnqueueCopyImage: proc "c" (
 	region: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueCopyImageToBuffer: proc "c" (
 	command_queue: CommandQueue,
@@ -297,7 +297,7 @@ impl_EnqueueCopyImageToBuffer: proc "c" (
 	dst_offset: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueCopyBufferToImage: proc "c" (
 	command_queue: CommandQueue,
@@ -308,7 +308,7 @@ impl_EnqueueCopyBufferToImage: proc "c" (
 	region: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueMapBuffer: proc "c" (
 	command_queue: CommandQueue,
@@ -319,7 +319,7 @@ impl_EnqueueMapBuffer: proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 	errcode_ret: ^i32,
 ) -> rawptr
 impl_EnqueueMapImage: proc "c" (
@@ -333,7 +333,7 @@ impl_EnqueueMapImage: proc "c" (
 	image_slice_pitch: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 	errcode_ret: ^i32,
 ) -> rawptr
 impl_EnqueueUnmapMemObject: proc "c" (
@@ -342,7 +342,7 @@ impl_EnqueueUnmapMemObject: proc "c" (
 	mapped_ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueNDRangeKernel: proc "c" (
 	command_queue: CommandQueue,
@@ -353,7 +353,7 @@ impl_EnqueueNDRangeKernel: proc "c" (
 	local_work_size: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueNativeKernel: proc "c" (
 	command_queue: CommandQueue,
@@ -365,7 +365,7 @@ impl_EnqueueNativeKernel: proc "c" (
 	args_mem_loc: ^rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueReadBuffer: proc "c" (
 	command_queue: CommandQueue,
@@ -376,7 +376,7 @@ impl_EnqueueReadBuffer: proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueWriteBuffer: proc "c" (
 	command_queue: CommandQueue,
@@ -387,7 +387,7 @@ impl_EnqueueWriteBuffer: proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueCopyBuffer: proc "c" (
 	command_queue: CommandQueue,
@@ -398,7 +398,7 @@ impl_EnqueueCopyBuffer: proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueReadImage: proc "c" (
 	command_queue: CommandQueue,
@@ -411,7 +411,7 @@ impl_EnqueueReadImage: proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueWriteImage: proc "c" (
 	command_queue: CommandQueue,
@@ -424,7 +424,7 @@ impl_EnqueueWriteImage: proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 
 
@@ -543,7 +543,7 @@ impl_EnqueueReadBufferRect: proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueWriteBufferRect: proc "c" (
 	command_queue: CommandQueue,
@@ -559,7 +559,7 @@ impl_EnqueueWriteBufferRect: proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueCopyBufferRect: proc "c" (
 	command_queue: CommandQueue,
@@ -574,7 +574,7 @@ impl_EnqueueCopyBufferRect: proc "c" (
 	dst_slice_pitch: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 
 
@@ -652,7 +652,7 @@ impl_EnqueueFillBuffer: proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueFillImage: proc "c" (
 	command_queue: CommandQueue,
@@ -662,7 +662,7 @@ impl_EnqueueFillImage: proc "c" (
 	region: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueMigrateMemObjects: proc "c" (
 	command_queue: CommandQueue,
@@ -671,19 +671,19 @@ impl_EnqueueMigrateMemObjects: proc "c" (
 	flags: MemMigrationFlags,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueMarkerWithWaitList: proc "c" (
 	command_queue: CommandQueue,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueBarrierWithWaitList: proc "c" (
 	command_queue: CommandQueue,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 
 
@@ -727,7 +727,7 @@ impl_EnqueueSVMFree: proc "c" (
 	user_data: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueSVMMemcpy: proc "c" (
 	command_queue: CommandQueue,
@@ -737,7 +737,7 @@ impl_EnqueueSVMMemcpy: proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueSVMMemFill: proc "c" (
 	command_queue: CommandQueue,
@@ -747,7 +747,7 @@ impl_EnqueueSVMMemFill: proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueSVMMap: proc "c" (
 	command_queue: CommandQueue,
@@ -757,14 +757,14 @@ impl_EnqueueSVMMap: proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 impl_EnqueueSVMUnmap: proc "c" (
 	command_queue: CommandQueue,
 	svm_ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 
 
@@ -814,7 +814,7 @@ impl_EnqueueSVMMigrateMem: proc "c" (
 	flags: MemFlags,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32
 
 

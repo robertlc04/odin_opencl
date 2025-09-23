@@ -1,5 +1,7 @@
 package cl
 
+// TODO: Make a when ODIN_DEBUG for easy debuging with message error no handler needed for now
+
 // CL_VERSION_1_0
 GetPlatformIDs :: #force_inline proc "c" (
 	num_entries: u32,
@@ -25,7 +27,7 @@ GetDeviceIDs :: #force_inline proc "c" (
 	platform: PlatformId,
 	device_type: DeviceType,
 	num_entries: u32,
-	devices: ^DeviceId,
+	devices: [^]DeviceId,
 	num_devices: ^u32,
 ) -> i32 {return impl_GetDeviceIDs(platform, device_type, num_entries, devices, num_devices)}
 
@@ -47,7 +49,7 @@ GetDeviceInfo :: #force_inline proc "c" (
 CreateContext :: #force_inline proc "c" (
 	properties: ^ContextProperties,
 	num_devices: u32,
-	devices: ^DeviceId,
+	devices: [^]DeviceId,
 	pfn_notify: ^CreateContextCallback,
 	user_data: rawptr,
 	errcode_ret: ^i32,
@@ -289,7 +291,7 @@ EnqueueCopyImage :: #force_inline proc "c" (
 	region: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueCopyImage(
 		command_queue,
@@ -313,7 +315,7 @@ EnqueueCopyImageToBuffer :: #force_inline proc "c" (
 	dst_offset: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueCopyImageToBuffer(
 		command_queue,
@@ -337,7 +339,7 @@ EnqueueCopyBufferToImage :: #force_inline proc "c" (
 	region: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueCopyBufferToImage(
 		command_queue,
@@ -361,7 +363,7 @@ EnqueueMapBuffer :: #force_inline proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 	errcode_ret: ^i32,
 ) -> rawptr {
 	return impl_EnqueueMapBuffer(
@@ -389,7 +391,7 @@ EnqueueMapImage :: #force_inline proc "c" (
 	image_slice_pitch: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 	errcode_ret: ^i32,
 ) -> rawptr {
 	return impl_EnqueueMapImage(
@@ -414,7 +416,7 @@ EnqueueUnmapMemObject :: #force_inline proc "c" (
 	mapped_ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueUnmapMemObject(
 		command_queue,
@@ -435,7 +437,7 @@ EnqueueNDRangeKernel :: #force_inline proc "c" (
 	local_work_size: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueNDRangeKernel(
 		command_queue,
@@ -460,7 +462,7 @@ EnqueueNativeKernel :: #force_inline proc "c" (
 	args_mem_loc: ^rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueNativeKernel(
 		command_queue,
@@ -485,7 +487,7 @@ EnqueueReadBuffer :: #force_inline proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueReadBuffer(
 		command_queue,
@@ -509,7 +511,7 @@ EnqueueWriteBuffer :: #force_inline proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueWriteBuffer(
 		command_queue,
@@ -533,7 +535,7 @@ EnqueueCopyBuffer :: #force_inline proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueCopyBuffer(
 		command_queue,
@@ -559,7 +561,7 @@ EnqueueReadImage :: #force_inline proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueReadImage(
 		command_queue,
@@ -587,7 +589,7 @@ EnqueueWriteImage :: #force_inline proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueWriteImage(
 		command_queue,
@@ -672,7 +674,7 @@ EnqueueReadBufferRect :: #force_inline proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueReadBufferRect(
 		command_queue,
@@ -706,7 +708,7 @@ EnqueueWriteBufferRect :: #force_inline proc "c" (
 	ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueWriteBufferRect(
 		command_queue,
@@ -739,7 +741,7 @@ EnqueueCopyBufferRect :: #force_inline proc "c" (
 	dst_slice_pitch: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueCopyBufferRect(
 		command_queue,
@@ -877,7 +879,7 @@ EnqueueFillBuffer :: #force_inline proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueFillBuffer(
 		command_queue,
@@ -900,7 +902,7 @@ EnqueueFillImage :: #force_inline proc "c" (
 	region: ^uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueFillImage(
 		command_queue,
@@ -921,7 +923,7 @@ EnqueueMigrateMemObjects :: #force_inline proc "c" (
 	flags: MemMigrationFlags,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueMigrateMemObjects(
 		command_queue,
@@ -938,7 +940,7 @@ EnqueueMarkerWithWaitList :: #force_inline proc "c" (
 	command_queue: CommandQueue,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueMarkerWithWaitList(
 		command_queue,
@@ -952,7 +954,7 @@ EnqueueBarrierWithWaitList :: #force_inline proc "c" (
 	command_queue: CommandQueue,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueBarrierWithWaitList(
 		command_queue,
@@ -1004,7 +1006,7 @@ EnqueueSVMFree :: #force_inline proc "c" (
 	user_data: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueSVMFree(
 		command_queue,
@@ -1026,7 +1028,7 @@ EnqueueSVMMemcpy :: #force_inline proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueSVMMemcpy(
 		command_queue,
@@ -1048,7 +1050,7 @@ EnqueueSVMMemFill :: #force_inline proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueSVMMemFill(
 		command_queue,
@@ -1070,7 +1072,7 @@ EnqueueSVMMap :: #force_inline proc "c" (
 	size: uint,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueSVMMap(
 		command_queue,
@@ -1089,7 +1091,7 @@ EnqueueSVMUnmap :: #force_inline proc "c" (
 	svm_ptr: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueSVMUnmap(
 		command_queue,
@@ -1146,7 +1148,7 @@ EnqueueSVMMigrateMem :: #force_inline proc "c" (
 	flags: MemFlags,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
-	event: Event,
+	event: ^Event,
 ) -> i32 {
 	return impl_EnqueueSVMMigrateMem(
 		command_queue,
