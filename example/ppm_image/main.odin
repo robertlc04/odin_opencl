@@ -1,10 +1,13 @@
 package generate_ppm
 
 import "core:fmt"
+import "core:image"
+import pbm "core:image/netpbm"
 import "core:log"
 import "core:math"
 import "core:os"
 import "core:strings"
+import "core:thread"
 
 import "../../cl"
 
@@ -134,6 +137,21 @@ read_buffer :: proc(storage: []f32) {
 	)
 }
 
+parse_to_rgb :: proc(image_buf: []image.RGB_Pixel, data: []f32, start_point: u32, size: u32) {
+	pixel_base: u32
+	base_offset := start_point * size * 3
+	for i: u32 = 0; i < size; i += 1 {
+		pixel_base = base_offset + (3 * i)
+
+		image_buf[i].r = u8(data[pixel_base])
+		image_buf[i].g = u8(data[pixel_base + 1])
+		image_buf[i].b = u8(data[pixel_base + 2])
+	}
+}
+
+// TODO: Finish a multithread using the example in testing_odin/pool
+parse_to_image :: proc(imge_buf: []image.RGB_Pixel, data: []f32, width: u32, height: u32) {}
+
 main :: proc() {
 	context.logger = log.create_console_logger()
 	context.logger.options = {.Date, .Procedure, .Level, .Terminal_Color}
@@ -163,55 +181,17 @@ main :: proc() {
 	run()
 
 	storage := make([]f32, g.size * 3, context.temp_allocator)
+	rgb_buf := make([]image.RGB_Pixel, g.size, context.temp_allocator)
 	read_buffer(storage)
 
+	for i in 0 ..< 1080 do parse_to_rgb(rgb_buf[i * 1920:], storage, u32(i), 1920)
 
-	// Init Headers
-	// file_buf[0] = "P2\n"
-	// file_buf[1] = "1920 1080\n"
-	// file_buf[2] = "1\n"
+	img, success := image.pixels_to_image(rgb_buf, 1920, 1080)
+	if !success do log.debug("Something Bad happen")
 
-	// line: u32 = 3
-
-	builder := strings.builder_make(context.temp_allocator)
-	defer strings.builder_destroy(&builder)
-	strings.builder_grow(&builder, int(g.size) * 3 + 100)
-
-	strings.write_string(&builder, "P3\n")
-	strings.write_string(&builder, "1920 1080\n")
-	strings.write_string(&builder, "255\n")
-
-	value: string
-	for i in 0 ..< 1080 {
-		for j in 0 ..< 1920 {
-			// if (storage[i * 1920 + j] < 0) do storage[i * 1920 + j] = 0
-			pixel_base := (i * 1920 + j) * 3
-
-			r := int(storage[pixel_base])
-			g := int(storage[pixel_base + 1])
-			b := int(storage[pixel_base + 2])
-
-			// Clamp values to 0-255
-			r = max(0, min(255, r))
-			g = max(0, min(255, g))
-			b = max(0, min(255, b))
-
-			if j == 0 {
-				strings.write_string(&builder, fmt.tprintf("%d %d %d", r, g, b))
-			} else {
-				strings.write_string(&builder, fmt.tprintf(" %d %d %d", r, g, b))
-			}
-		}
-		strings.write_string(&builder, "\n")
+	if info, ok := pbm.autoselect_pbm_format_from_image(&img); ok {
+		pbm.save_to_file("image", &img, info, context.temp_allocator)
 	}
-
-
-	result := strings.to_string(builder)
-	// result, _ = strings.replace_all(result, "[", "", context.temp_allocator)
-	// result, _ = strings.replace_all(result, "]", "", context.temp_allocator)
-
-	if !os.write_entire_file("image", transmute([]u8)result) do log.error("Something get wrong")
-
 
 }
 
