@@ -149,8 +149,57 @@ parse_to_rgb :: proc(image_buf: []image.RGB_Pixel, data: []f32, start_point: u32
 	}
 }
 
-// TODO: Finish a multithread using the example in testing_odin/pool
-parse_to_image :: proc(imge_buf: []image.RGB_Pixel, data: []f32, width: u32, height: u32) {}
+TaskData :: struct {
+	width:  u32,
+	data:   []f32,
+	result: []image.RGB_Pixel,
+}
+
+parse_to_image :: proc(task: thread.Task) {
+	task_src := cast(^TaskData)task.data
+	parse_to_rgb(task_src.result, task_src.data, u32(task.user_index), task_src.width)
+	log.debugf("Thread #%d started", task.user_index)
+}
+
+generate_image :: proc() -> (success: bool) {
+
+	data := make([]f32, g.size * 3, context.temp_allocator)
+	result := make([]image.RGB_Pixel, g.size, context.temp_allocator)
+	read_buffer(data)
+
+	pool: thread.Pool
+	thread.pool_init(&pool, context.temp_allocator, 8)
+	defer thread.pool_destroy(&pool)
+
+	task_count := 1080
+	task_data := make([]TaskData, task_count)
+
+	task_count = 0
+
+	for i in 0 ..< 1080 {
+		task_data[i] = TaskData {
+			width  = 1920,
+			data   = data,
+			result = result[i * 1920:],
+		}
+
+		thread.pool_add_task(&pool, context.temp_allocator, parse_to_image, &task_data[i], i)
+	}
+
+	thread.pool_start(&pool)
+	thread.pool_finish(&pool)
+
+	img, ok := image.pixels_to_image(result, 1920, 1080)
+	if !ok do log.debug("Something Bad happen")
+
+	if info, ok := pbm.autoselect_pbm_format_from_image(&img); ok {
+		err := pbm.save_to_file("image", &img, info, context.temp_allocator)
+		if err == nil do return true
+		log.errorf("Image Error: %s", err)
+	}
+
+	return false
+}
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -179,19 +228,7 @@ main :: proc() {
 	defer cl.RetainMemObject(g.result_buf)
 
 	run()
-
-	storage := make([]f32, g.size * 3, context.temp_allocator)
-	rgb_buf := make([]image.RGB_Pixel, g.size, context.temp_allocator)
-	read_buffer(storage)
-
-	for i in 0 ..< 1080 do parse_to_rgb(rgb_buf[i * 1920:], storage, u32(i), 1920)
-
-	img, success := image.pixels_to_image(rgb_buf, 1920, 1080)
-	if !success do log.debug("Something Bad happen")
-
-	if info, ok := pbm.autoselect_pbm_format_from_image(&img); ok {
-		pbm.save_to_file("image", &img, info, context.temp_allocator)
-	}
+	generate_image()
 
 }
 
