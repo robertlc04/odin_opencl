@@ -38,16 +38,13 @@ get_available_platforms :: proc() -> (result: []Platform, err: clc.ErrorCodes) {
 	result = make([]Platform, numPlatforms, context.allocator)
 
 	// Get the basic Information
-
-
 	for &platform, i in result {
 		platform.id = platforms[i]
-		get_platform_field(&platform, .CL_PLATFORM_NAME, "name", cstring)
-		// if err = get_platform_name(&platform); err != .SUCCESS do return nil, err
-		// if err = get_platform_profile(&platform); err != .SUCCESS do return nil, err
-		// if err = get_platform_vendor(&platform); err != .SUCCESS do return nil, err
-		// if err = get_platform_version(&platform); err != .SUCCESS do return nil, err
-		// if err = get_platform_extensions(&platform); err != .SUCCESS do return nil, err
+		if err = get_platform_field(&platform, .CL_PLATFORM_NAME, "name", cstring); err != .SUCCESS do return nil, err
+		if err = get_platform_field(&platform, .CL_PLATFORM_PROFILE, "profile", cstring); err != .SUCCESS do return nil, err
+		if err = get_platform_field(&platform, .CL_PLATFORM_VENDOR, "vendor", cstring); err != .SUCCESS do return nil, err
+		if err = get_platform_field(&platform, .CL_PLATFORM_VERSION, "version", cstring); err != .SUCCESS do return nil, err
+		if err = get_platform_field(&platform, .CL_PLATFORM_EXTENSIONS, "extensions", cstring); err != .SUCCESS do return nil, err
 	}
 
 	return result, err
@@ -67,105 +64,19 @@ get_platform_field :: proc(
 ) {
 	numItems: uint
 	err = clc.GetPlatformInfo(platform.id, field, 0, nil, &numItems)
+	if err != .SUCCESS do return
+
+	info_raw := make([]u8, numItems, context.temp_allocator)
+	err = clc.GetPlatformInfo(platform.id, field, u32(numItems), &info_raw[0], &numItems)
+	if err != .SUCCESS do return
+
 	test := reflect.struct_field_by_name(PlatformInfo, struct_field)
 
-	log.debugf("Testing things: %v", test)
+	field_ptr := rawptr(uintptr(&platform.info) + test.offset)
+
+	(^T)(field_ptr)^ = T(&info_raw[0])
 
 	return
-}
-
-get_platform_name :: proc(platform: ^Platform) -> (err: clc.ErrorCodes) {
-	name: [256]u8
-	num: uint
-	err = clc.ErrorCodes(clc.GetPlatformInfo(platform.id, .CL_PLATFORM_NAME, 256, &name[0], &num))
-
-	if err != .SUCCESS {
-		platform.info.name = "Unknown"
-		return err
-	}
-
-	when ODIN_DEBUG {
-		log.debugf("Platform Name: %s", cstring(&name[0]))
-	}
-	platform.info.name = cstring(&name[0])
-	return clc.ErrorCodes.SUCCESS
-}
-
-get_platform_profile :: proc(platform: ^Platform) -> (err: clc.ErrorCodes) {
-	name: [256]u8
-	num: uint
-	err = clc.ErrorCodes(
-		clc.GetPlatformInfo(platform.id, .CL_PLATFORM_PROFILE, 256, &name[0], &num),
-	)
-
-	if err != .SUCCESS {
-		platform.info.profile = "Unknown"
-		return err
-	}
-
-	when ODIN_DEBUG {
-		log.debugf("Platform Profile: %s", cstring(&name[0]))
-	}
-	platform.info.profile = cstring(&name[0])
-	return clc.ErrorCodes.SUCCESS
-}
-
-
-get_platform_vendor :: proc(platform: ^Platform) -> (err: clc.ErrorCodes) {
-	name: [256]u8
-	num: uint
-	err = clc.ErrorCodes(
-		clc.GetPlatformInfo(platform.id, .CL_PLATFORM_VENDOR, 256, &name[0], &num),
-	)
-
-	if err != .SUCCESS {
-		platform.info.vendor = "Unknown"
-		return err
-	}
-
-	when ODIN_DEBUG {
-		log.debugf("Platform Vendor: %s", cstring(&name[0]))
-	}
-	platform.info.vendor = cstring(&name[0])
-	return clc.ErrorCodes.SUCCESS
-}
-
-get_platform_version :: proc(platform: ^Platform) -> (err: clc.ErrorCodes) {
-	name: [256]u8
-	num: uint
-	err = clc.ErrorCodes(
-		clc.GetPlatformInfo(platform.id, .CL_PLATFORM_VERSION, 256, &name[0], &num),
-	)
-
-	if err != .SUCCESS {
-		platform.info.version = "Unknown"
-		return err
-	}
-
-	when ODIN_DEBUG {
-		log.debugf("Platform Version: %s", cstring(&name[0]))
-	}
-	platform.info.version = cstring(&name[0])
-	return clc.ErrorCodes.SUCCESS
-}
-
-get_platform_extensions :: proc(platform: ^Platform) -> (err: clc.ErrorCodes) {
-	name: [256]u8
-	num: uint
-	err = clc.ErrorCodes(
-		clc.GetPlatformInfo(platform.id, .CL_PLATFORM_EXTENSIONS, 256, &name[0], &num),
-	)
-
-	if err != .SUCCESS {
-		platform.info.extensions = "Unknown"
-		return err
-	}
-
-	when ODIN_DEBUG {
-		log.debugf("Platform Extensions: %s", cstring(&name[0]))
-	}
-	platform.info.extensions = cstring(&name[0])
-	return clc.ErrorCodes.SUCCESS
 }
 
 get_available_devices :: proc(platform: Platform) -> (result: []Device, err: clc.ErrorCodes) {
@@ -185,14 +96,18 @@ get_available_devices :: proc(platform: Platform) -> (result: []Device, err: clc
 	for &device, i in result {
 		device.id = devices[i]
 		// Get the basic Information
-		// if err = get_device_name(&device); err != .SUCCESS do return nil, err
-		// if err = get_device_profile(&device); err != .SUCCESS do return nil, err
-		// if err = get_device_vendor(&device); err != .SUCCESS do return nil, err
-		// if err = get_device_version(&device); err != .SUCCESS do return nil, err
-		// if err = get_driver_version(&device); err != .SUCCESS do return nil, err
-		// if err = get_device_extensions(&device); err != .SUCCESS do return nil, err
+		if err = get_device_basic_field(&device, .DEVICE_NAME, "name", cstring); err != .SUCCESS do return nil, err
+		if err = get_device_basic_field(&device, .DEVICE_PROFILE, "profile", cstring); err != .SUCCESS do return nil, err
+		if err = get_device_basic_field(&device, .DEVICE_VENDOR, "vendor", cstring); err != .SUCCESS do return nil, err
+		if err = get_device_basic_field(&device, .DEVICE_EXTENSIONS, "extensions", cstring); err != .SUCCESS do return nil, err
+		if err = get_device_basic_field(&device, .DEVICE_VERSION, "version", cstring); err != .SUCCESS do return nil, err
+		if err = get_device_basic_field(&device, .DRIVER_VERSION, "driver_version", cstring); err != .SUCCESS do return nil, err
+		if err = get_device_basic_field(&device, .DEVICE_IL_VERSION, "il_version", cstring); err != .SUCCESS do return nil, err
 		// // Advance Information
-		// if err = get_device_il_version(&device); err != .SUCCESS do return nil, err
+		if err = get_device_single_field(&device, .DEVICE_SINGLE_FP_CONFIG, "single_fp_config", u64); err != .SUCCESS do return nil, err
+		if err = get_device_single_field(&device, .DEVICE_ENDIAN_LITTLE, "little_endian", bool); err != .SUCCESS do return nil, err
+		if err = get_device_single_field(&device, .DEVICE_AVAILABLE, "available", bool); err != .SUCCESS do return nil, err
+		if err = get_device_single_field(&device, .DEVICE_SVM_CAPABILITIES, "svm_capabilities", u64); err != .SUCCESS do return nil, err
 
 	}
 
@@ -204,116 +119,57 @@ destroy_devices :: proc(devices: []Device) {
 	delete(devices)
 }
 
-get_device_name :: proc(device: ^Device, location := #caller_location) -> (err: clc.ErrorCodes) {
-	num: uint
-	if err = clc.GetDeviceInfo(device.id, .DEVICE_NAME, 0, nil, &num); err != .SUCCESS {
-		when ODIN_DEBUG do debug_get_informations(device, err)
-		return
-	}
-	name := make([]u8, num, context.temp_allocator)
 
-	if err = clc.GetDeviceInfo(device.id, .DEVICE_NAME, 256, &name[0], &num); err != .SUCCESS {
-		when ODIN_DEBUG do debug_get_informations(device, err)
-		return
-	}
-	when ODIN_DEBUG {
-		log.debugf("Device name: %s", cstring(&name[0]))
-	}
-	device.info.name = cstring(&name[0]) if num > 0 else "UNKNOWN"
-	return
-}
+get_device_basic_field :: proc(
+	device: ^Device,
+	field: clc.DeviceInfo,
+	struct_field: string,
+	$T: typeid,
+) -> (
+	err: clc.ErrorCodes,
+) {
+	numItems: uint
+	err = clc.GetDeviceInfo(device.id, field, 0, nil, &numItems)
+	if err != .SUCCESS do return
 
-get_device_profile :: proc(device: ^Device) -> (err: clc.ErrorCodes) {
-	profile: [1024]u8
-	num: uint
-	if err = clc.GetDeviceInfo(device.id, .DEVICE_PROFILE, 1024, &profile[0], &num);
-	   err != .SUCCESS {
-		when ODIN_DEBUG do debug_get_informations(device, err)
-		return
-	}
+	info_raw := make([]u8, numItems, context.temp_allocator)
+	err = clc.GetDeviceInfo(device.id, field, u32(numItems), &info_raw[0], &numItems)
+	if err != .SUCCESS do return
 
-	when ODIN_DEBUG {
-		log.debugf("Device profile: %s", cstring(&profile[0]))
-	}
-	device.info.profile = cstring(&profile[0]) if num > 0 else "UNKNOWN"
+	test := reflect.struct_field_by_name(DeviceInfo, struct_field)
+
+	field_ptr := rawptr(uintptr(&device.info) + test.offset)
+
+	(^T)(field_ptr)^ = T(&info_raw[0])
+
 	return
 }
 
 
-get_device_vendor :: proc(device: ^Device) -> (err: clc.ErrorCodes) {
-	vendor: [256]u8
-	num: uint
-	if err = clc.GetDeviceInfo(device.id, .DEVICE_VENDOR, 256, &vendor[0], &num); err != .SUCCESS {
-		when ODIN_DEBUG do debug_get_informations(device, err)
-		return
-	}
-	when ODIN_DEBUG {
-		log.debugf("Device vendor: %s", cstring(&vendor[0]))
-	}
-	device.info.vendor = cstring(&vendor[0]) if num > 0 else "UNKNOWN"
+get_device_single_field :: proc(
+	device: ^Device,
+	field: clc.DeviceInfo,
+	struct_field: string,
+	$T: typeid,
+) -> (
+	err: clc.ErrorCodes,
+) {
+	numItems: uint
+	err = clc.GetDeviceInfo(device.id, field, 0, nil, &numItems)
+	if err != .SUCCESS do return
+
+	info_raw := make([]T, numItems, context.temp_allocator)
+	err = clc.GetDeviceInfo(device.id, field, u32(numItems), &info_raw[0], &numItems)
+	if err != .SUCCESS do return
+
+	test := reflect.struct_field_by_name(DeviceInfo, struct_field)
+
+	field_ptr := rawptr(uintptr(&device.info) + test.offset)
+
+	(^T)(field_ptr)^ = T(info_raw[0])
+
 	return
 }
-
-get_device_version :: proc(device: ^Device) -> (err: clc.ErrorCodes) {
-	version: [256]u8
-	num: uint
-	if err = clc.GetDeviceInfo(device.id, .DEVICE_VERSION, 256, &version[0], &num);
-	   err != .SUCCESS {
-		when ODIN_DEBUG do debug_get_informations(device, err)
-		return
-	}
-	when ODIN_DEBUG {
-		log.debugf("Device version: %s", cstring(&version[0]))
-	}
-	device.info.version = cstring(&version[0]) if num > 0 else "UNKNOWN"
-	return
-}
-
-get_driver_version :: proc(device: ^Device) -> (err: clc.ErrorCodes) {
-	driver_version: [256]u8
-	num: uint
-	if err = clc.GetDeviceInfo(device.id, .DRIVER_VERSION, 256, &driver_version[0], &num);
-	   err != .SUCCESS {
-		when ODIN_DEBUG do debug_get_informations(device, err)
-		return
-	}
-	when ODIN_DEBUG {
-		log.debugf("Device driver version: %s", cstring(&driver_version[0]))
-	}
-	device.info.driver_version = cstring(&driver_version[0]) if num > 0 else "UNKNOWN"
-	return
-}
-
-get_device_il_version :: proc(device: ^Device) -> (err: clc.ErrorCodes) {
-	device_il_version: [256]u8
-	num: uint
-	if err = clc.GetDeviceInfo(device.id, .DEVICE_IL_VERSION, 256, &device_il_version[0], &num);
-	   err != .SUCCESS {
-		when ODIN_DEBUG do debug_get_informations(device, err)
-		return
-	}
-	when ODIN_DEBUG {
-		log.debugf("Device IL version: %s", cstring(&device_il_version[0]))
-	}
-	device.info.il_version = cstring(&device_il_version[0]) if num > 0 else "UNKNOWN"
-	return
-}
-
-get_device_extensions :: proc(device: ^Device) -> (err: clc.ErrorCodes) {
-	extensions: [1024]u8
-	num: uint
-	if err = clc.GetDeviceInfo(device.id, .DEVICE_EXTENSIONS, 1024, &extensions[0], &num);
-	   err != .SUCCESS {
-		when ODIN_DEBUG do debug_get_informations(device, err)
-		return
-	}
-	when ODIN_DEBUG {
-		log.debugf("Device extensions: %s", cstring(&extensions[0]))
-	}
-	device.info.extensions = cstring(&extensions[0]) if num > 0 else "UNKNOWN"
-	return
-}
-
 // max_work_items:   u32,
 // single_fp_config: u64, // This it's configured for bit shifting if available
 // svm_capabilities: u64, // This it's configured for bit shifting if available

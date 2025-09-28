@@ -38,7 +38,6 @@ DeviceInfo :: struct {
 	driver_version:   cstring,
 	extensions:       cstring,
 	// For specifig working
-	max_work_items:   u32,
 	il_version:       cstring,
 	single_fp_config: u64, // This it's configured for bit shifting if available
 	little_endian:    bool,
