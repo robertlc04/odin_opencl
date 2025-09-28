@@ -9,7 +9,7 @@ import "core:os"
 import "core:strings"
 import "core:thread"
 
-import "../../cl"
+import cl "../../cl/core"
 
 Globals :: #type struct {
 	platform:   cl.PlatformId,
@@ -61,19 +61,19 @@ init_device :: proc() {
 }
 
 init_context :: proc() {
-	err: i32
+	err: cl.ErrorCodes
 	g.ctx = cl.CreateContext(nil, 1, &g.device, nil, nil, &err)
 	cl.check(err)
 }
 
 init_command_queue :: proc() {
-	err: i32
+	err: cl.ErrorCodes
 	g.cmd_queue = cl.CreateCommandQueueWithProperties(g.ctx, g.device, nil, &err)
 	cl.check(err)
 }
 
 init_program :: proc() {
-	err: i32
+	err: cl.ErrorCodes
 	program_source := #load("./generate_data.cl", cstring)
 	g.program = cl.CreateProgramWithSource(g.ctx, 1, &program_source, nil, &err)
 	cl.check(err)
@@ -82,13 +82,13 @@ init_program :: proc() {
 }
 
 load_kernel :: proc() {
-	err: i32
+	err: cl.ErrorCodes
 	g.kernel = cl.CreateKernel(g.program, "smooth_additive_curves", &err)
 	cl.check(err)
 }
 
 prepare_result :: proc() {
-	err: i32
+	err: cl.ErrorCodes
 	g.result_buf = cl.CreateBuffer(g.ctx, .CL_MEM_READ_WRITE, size_of(f32) * g.size * 3, nil, &err)
 	cl.check(err)
 }

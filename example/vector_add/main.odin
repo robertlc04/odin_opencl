@@ -4,7 +4,7 @@ import "core:c"
 import "core:fmt"
 import "core:log"
 
-import "../../cl"
+import cl "../../cl/core"
 
 
 init_platform :: proc(platform: ^cl.PlatformId) {
@@ -43,7 +43,7 @@ main :: proc() {
 	init_device(platform, &device)
 	// Create Context
 	log.debug("Creating Context")
-	error: i32
+	error: cl.ErrorCodes
 	ocl_context := cl.CreateContext(nil, 1, &device, nil, nil, &error)
 	cl.check(error)
 	log.debugf("Context pointer: %p", ocl_context)

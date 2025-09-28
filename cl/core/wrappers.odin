@@ -15,7 +15,7 @@ GetPlatformIDs :: #force_inline proc "c" (
 GetPlatformInfo :: #force_inline proc "c" (
 	platform: PlatformId,
 	param_name: PlatformInfo,
-	param_value_size: uint,
+	param_value_size: u32,
 	param_value: rawptr,
 	param_value_size_ret: ^uint,
 ) -> ErrorCodes {
@@ -24,7 +24,7 @@ GetPlatformInfo :: #force_inline proc "c" (
 	return ErrorCodes(
 		impl_GetPlatformInfo(
 			platform,
-			uint(param_name),
+			u32(param_name),
 			param_value_size,
 			param_value,
 			param_value_size_ret,
@@ -44,7 +44,7 @@ GetDeviceIDs :: #force_inline proc "c" (
 GetDeviceInfo :: #force_inline proc "c" (
 	device: DeviceId,
 	param_name: DeviceInfo,
-	param_value_size: uint,
+	param_value_size: u32,
 	param_value: rawptr,
 	param_value_size_ret: ^uint,
 ) -> ErrorCodes {
@@ -52,7 +52,7 @@ GetDeviceInfo :: #force_inline proc "c" (
 	return ErrorCodes(
 		impl_GetDeviceInfo(
 			device,
-			uint(param_name),
+			u32(param_name),
 			param_value_size,
 			param_value,
 			param_value_size_ret,

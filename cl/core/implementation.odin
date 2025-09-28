@@ -108,8 +108,8 @@ impl_GetPlatformIDs: proc "c" (
 
 impl_GetPlatformInfo: proc "c" (
 	platform: PlatformId,
-	param_name: uint,
-	param_value_size: uint,
+	param_name: u32,
+	param_value_size: u32,
 	param_value: rawptr,
 	param_value_size_ret: ^uint,
 ) -> i32
@@ -126,8 +126,8 @@ impl_GetDeviceIDs: proc "c" (
 
 impl_GetDeviceInfo: proc "c" (
 	device: DeviceId,
-	param_name: uint,
-	param_value_size: uint,
+	param_name: u32,
+	param_value_size: u32,
 	param_value: rawptr,
 	param_value_size_ret: ^uint,
 ) -> i32

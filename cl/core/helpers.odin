@@ -17,6 +17,7 @@ Kernel :: distinct rawptr
 Memory :: distinct rawptr
 Event :: distinct rawptr
 
+lib_g: dynlib.Library
 
 load_proc :: proc(p: rawptr, name: cstring, libcl: dynlib.Library = nil) {
 	// Default loading in case of no provide lib
@@ -41,6 +42,7 @@ load_proc :: proc(p: rawptr, name: cstring, libcl: dynlib.Library = nil) {
 		}
 	}
 
+	lib_g = lib
 	ptr := dynlib.symbol_address(lib, string(name))
 	if ptr == nil {
 		fmt.printf("Warning: Could not load procedure %s\n", name)
@@ -52,6 +54,11 @@ load_proc :: proc(p: rawptr, name: cstring, libcl: dynlib.Library = nil) {
 load_opencl_procedures :: proc() {
 	// Load all OpenCL procedures
 	load_up_to(3, 0, load_proc)
+}
+
+unload_opencl_procedures :: proc() {
+	if lib_g == nil do return
+	dynlib.unload_library(lib_g)
 }
 
 
