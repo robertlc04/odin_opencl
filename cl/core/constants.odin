@@ -162,17 +162,17 @@ ErrorCodes_Descriptions := #sparse[ErrorCodes]string {
 }
 
 PlatformInfo :: enum u32 {
-	CL_PLATFORM_PROFILE                 = 0x0900,
-	CL_PLATFORM_VERSION                 = 0x0901,
-	CL_PLATFORM_NAME                    = 0x0902,
-	CL_PLATFORM_VENDOR                  = 0x0903,
-	CL_PLATFORM_EXTENSIONS              = 0x0904,
+	PLATFORM_PROFILE                 = 0x0900,
+	PLATFORM_VERSION                 = 0x0901,
+	PLATFORM_NAME                    = 0x0902,
+	PLATFORM_VENDOR                  = 0x0903,
+	PLATFORM_EXTENSIONS              = 0x0904,
 	// CL_VERSION_2_1
-	CL_PLATFORM_HOST_TIMER_RESOLUTION   = 0x0905,
+	PLATFORM_HOST_TIMER_RESOLUTION   = 0x0905,
 
 	// CL_VERSION_3_0
-	CL_PLATFORM_NUMERIC_VERSION         = 0x0906,
-	CL_PLATFORM_EXTENSIONS_WITH_VERSION = 0x0907,
+	PLATFORM_NUMERIC_VERSION         = 0x0906,
+	PLATFORM_EXTENSIONS_WITH_VERSION = 0x0907,
 }
 
 DeviceType :: enum u64 {
@@ -309,340 +309,348 @@ DeviceInfo :: enum u32 {
 	DEVICE_LATEST_CONFORMANCE_VERSION_PASSED       = 0x1072,
 }
 
+// CL_VERSION_1_2
+DevicePartitionProperty :: enum u32 {
+	EQUALLY            = 0x1086,
+	BY_COUNTS          = 0x1087,
+	BY_COUNTS_LIST_END = 0x0,
+	BY_AFFINITY_DOMAIN = 0x1088,
+}
+
 ContextInfo :: enum u32 {
-	CL_CONTEXT_REFERENCE_COUNT = 0x1080,
-	CL_CONTEXT_DEVICES         = 0x1081,
-	CL_CONTEXT_PROPERTIES      = 0x1082,
+	CONTEXT_REFERENCE_COUNT = 0x1080,
+	CONTEXT_DEVICES         = 0x1081,
+	CONTEXT_PROPERTIES      = 0x1082,
 	// CL_VERSION_1_1
-	CL_CONTEXT_NUM_DEVICES     = 0x1083,
+	CONTEXT_NUM_DEVICES     = 0x1083,
 }
 
 ContextProperties :: enum i32 {
-	CL_CONTEXT_PLATFORM          = 0x1084,
+	CONTEXT_PLATFORM          = 0x1084,
 	// CL_VERSION_1_2
-	CL_CONTEXT_INTEROP_USER_SYNC = 0x1085,
+	CONTEXT_INTEROP_USER_SYNC = 0x1085,
 }
 
 CommandQueueProperties :: enum u64 {
-	CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE = (1 << 0),
-	CL_QUEUE_PROFILING_ENABLE              = (1 << 1),
+	QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE = (1 << 0),
+	QUEUE_PROFILING_ENABLE              = (1 << 1),
 	// CL_VERSION_2_0
-	CL_QUEUE_ON_DEVICE                     = (1 << 2),
-	CL_QUEUE_ON_DEVICE_DEFAULT             = (1 << 3),
+	QUEUE_ON_DEVICE                     = (1 << 2),
+	QUEUE_ON_DEVICE_DEFAULT             = (1 << 3),
 }
 
 CommandQueueInfo :: enum u32 {
-	CL_QUEUE_CONTEXT          = 0x1090,
-	CL_QUEUE_DEVICE           = 0x1091,
-	CL_QUEUE_REFERENCE_COUNT  = 0x1092,
-	CL_QUEUE_PROPERTIES       = 0x1093,
+	QUEUE_CONTEXT          = 0x1090,
+	QUEUE_DEVICE           = 0x1091,
+	QUEUE_REFERENCE_COUNT  = 0x1092,
+	QUEUE_PROPERTIES       = 0x1093,
 	// CL_VERSION_2_0
-	CL_QUEUE_SIZE             = 0x1094,
+	QUEUE_SIZE             = 0x1094,
 
 	//CL_VERSION_2_1
-	CL_QUEUE_DEVICE_DEFAULT   = 0x1095,
+	QUEUE_DEVICE_DEFAULT   = 0x1095,
 
 	//CL_VERSION_3_0
-	CL_QUEUE_PROPERTIES_ARRAY = 0x1098,
+	QUEUE_PROPERTIES_ARRAY = 0x1098,
 }
 
 
 CommandType :: enum u32 {
-	CL_COMMAND_NDRANGE_KERNEL       = 0x11F0,
-	CL_COMMAND_TASK                 = 0x11F1,
-	CL_COMMAND_NATIVE_KERNEL        = 0x11F2,
-	CL_COMMAND_READ_BUFFER          = 0x11F3,
-	CL_COMMAND_WRITE_BUFFER         = 0x11F4,
-	CL_COMMAND_COPY_BUFFER          = 0x11F5,
-	CL_COMMAND_READ_IMAGE           = 0x11F6,
-	CL_COMMAND_WRITE_IMAGE          = 0x11F7,
-	CL_COMMAND_COPY_IMAGE           = 0x11F8,
-	CL_COMMAND_COPY_IMAGE_TO_BUFFER = 0x11F9,
-	CL_COMMAND_COPY_BUFFER_TO_IMAGE = 0x11FA,
-	CL_COMMAND_MAP_BUFFER           = 0x11FB,
-	CL_COMMAND_MAP_IMAGE            = 0x11FC,
-	CL_COMMAND_UNMAP_MEM_OBJECT     = 0x11FD,
-	CL_COMMAND_MARKER               = 0x11FE,
-	CL_COMMAND_ACQUIRE_GL_OBJECTS   = 0x11FF,
-	CL_COMMAND_RELEASE_GL_OBJECTS   = 0x1200,
+	COMMAND_NDRANGE_KERNEL       = 0x11F0,
+	COMMAND_TASK                 = 0x11F1,
+	COMMAND_NATIVE_KERNEL        = 0x11F2,
+	COMMAND_READ_BUFFER          = 0x11F3,
+	COMMAND_WRITE_BUFFER         = 0x11F4,
+	COMMAND_COPY_BUFFER          = 0x11F5,
+	COMMAND_READ_IMAGE           = 0x11F6,
+	COMMAND_WRITE_IMAGE          = 0x11F7,
+	COMMAND_COPY_IMAGE           = 0x11F8,
+	COMMAND_COPY_IMAGE_TO_BUFFER = 0x11F9,
+	COMMAND_COPY_BUFFER_TO_IMAGE = 0x11FA,
+	COMMAND_MAP_BUFFER           = 0x11FB,
+	COMMAND_MAP_IMAGE            = 0x11FC,
+	COMMAND_UNMAP_MEM_OBJECT     = 0x11FD,
+	COMMAND_MARKER               = 0x11FE,
+	COMMAND_ACQUIRE_GL_OBJECTS   = 0x11FF,
+	COMMAND_RELEASE_GL_OBJECTS   = 0x1200,
 	// CL_VERSION_1_1 
-	CL_COMMAND_READ_BUFFER_RECT     = 0x1201,
-	CL_COMMAND_WRITE_BUFFER_RECT    = 0x1202,
-	CL_COMMAND_COPY_BUFFER_RECT     = 0x1203,
-	CL_COMMAND_USER                 = 0x1204,
+	COMMAND_READ_BUFFER_RECT     = 0x1201,
+	COMMAND_WRITE_BUFFER_RECT    = 0x1202,
+	COMMAND_COPY_BUFFER_RECT     = 0x1203,
+	COMMAND_USER                 = 0x1204,
 
 	// CL_VERSION_1_2
-	CL_COMMAND_BARRIER              = 0x1205,
-	CL_COMMAND_MIGRATE_MEM_OBJECTS  = 0x1206,
-	CL_COMMAND_FILL_BUFFER          = 0x1207,
-	CL_COMMAND_FILL_IMAGE           = 0x1208,
+	COMMAND_BARRIER              = 0x1205,
+	COMMAND_MIGRATE_MEM_OBJECTS  = 0x1206,
+	COMMAND_FILL_BUFFER          = 0x1207,
+	COMMAND_FILL_IMAGE           = 0x1208,
 
 	// CL_VERSION_2_0 
-	CL_COMMAND_SVM_FREE             = 0x1209,
-	CL_COMMAND_SVM_MEMCPY           = 0x120A,
-	CL_COMMAND_SVM_MEMFILL          = 0x120B,
-	CL_COMMAND_SVM_MAP              = 0x120C,
-	CL_COMMAND_SVM_UNMAP            = 0x120D,
+	COMMAND_SVM_FREE             = 0x1209,
+	COMMAND_SVM_MEMCPY           = 0x120A,
+	COMMAND_SVM_MEMFILL          = 0x120B,
+	COMMAND_SVM_MAP              = 0x120C,
+	COMMAND_SVM_UNMAP            = 0x120D,
 
 	// CL_VERSION_3_0 
-	CL_COMMAND_SVM_MIGRATE_MEM      = 0x120E,
+	COMMAND_SVM_MIGRATE_MEM      = 0x120E,
 }
 
 /* command execution status */
-CL_COMPLETE :: 0x0
-CL_RUNNING :: 0x1
-CL_SUBMITTED :: 0x2
-CL_QUEUED :: 0x3
+CMD_COMPLETE :: 0x0
+CMD_RUNNING :: 0x1
+CMD_SUBMITTED :: 0x2
+CMD_QUEUED :: 0x3
 
 
 ProgramInfo :: enum u32 {
-	CL_PROGRAM_REFERENCE_COUNT            = 0x1160,
-	CL_PROGRAM_CONTEXT                    = 0x1161,
-	CL_PROGRAM_NUM_DEVICES                = 0x1162,
-	CL_PROGRAM_DEVICES                    = 0x1163,
-	CL_PROGRAM_SOURCE                     = 0x1164,
-	CL_PROGRAM_BINARY_SIZES               = 0x1165,
-	CL_PROGRAM_BINARIES                   = 0x1166,
+	PROGRAM_REFERENCE_COUNT            = 0x1160,
+	PROGRAM_CONTEXT                    = 0x1161,
+	PROGRAM_NUM_DEVICES                = 0x1162,
+	PROGRAM_DEVICES                    = 0x1163,
+	PROGRAM_SOURCE                     = 0x1164,
+	PROGRAM_BINARY_SIZES               = 0x1165,
+	PROGRAM_BINARIES                   = 0x1166,
 	//CL_VERSION_1_2
-	CL_PROGRAM_NUM_KERNELS                = 0x1167,
-	CL_PROGRAM_KERNEL_NAMES               = 0x1168,
+	PROGRAM_NUM_KERNELS                = 0x1167,
+	PROGRAM_KERNEL_NAMES               = 0x1168,
 
 	// CL_VERSION_2_1
-	CL_PROGRAM_IL                         = 0x1169,
+	PROGRAM_IL                         = 0x1169,
 
 	// CL_VERSION_2_2
-	CL_PROGRAM_SCOPE_GLOBAL_CTORS_PRESENT = 0x116A,
-	CL_PROGRAM_SCOPE_GLOBAL_DTORS_PRESENT = 0x116B,
+	PROGRAM_SCOPE_GLOBAL_CTORS_PRESENT = 0x116A,
+	PROGRAM_SCOPE_GLOBAL_DTORS_PRESENT = 0x116B,
 }
 
 ProgramBuildInfo :: enum u32 {
-	CL_PROGRAM_BUILD_STATUS                     = 0x1181,
-	CL_PROGRAM_BUILD_OPTIONS                    = 0x1182,
-	CL_PROGRAM_BUILD_LOG                        = 0x1183,
+	PROGRAM_BUILD_STATUS                     = 0x1181,
+	PROGRAM_BUILD_OPTIONS                    = 0x1182,
+	PROGRAM_BUILD_LOG                        = 0x1183,
 	//CL_VERSION_1_2
-	CL_PROGRAM_BINARY_TYPE                      = 0x1184,
+	PROGRAM_BINARY_TYPE                      = 0x1184,
 
 	//CL_VERSION_2_0
-	CL_PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE = 0x1185,
+	PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE = 0x1185,
 }
 
 // CL_VERSION_1_2
 ProgramBinaryType :: enum u32 {
-	CL_PROGRAM_BINARY_TYPE_NONE            = 0x0,
-	CL_PROGRAM_BINARY_TYPE_COMPILED_OBJECT = 0x1,
-	CL_PROGRAM_BINARY_TYPE_LIBRARY         = 0x2,
-	CL_PROGRAM_BINARY_TYPE_EXECUTABLE      = 0x4,
+	PROGRAM_BINARY_TYPE_NONE            = 0x0,
+	PROGRAM_BINARY_TYPE_COMPILED_OBJECT = 0x1,
+	PROGRAM_BINARY_TYPE_LIBRARY         = 0x2,
+	PROGRAM_BINARY_TYPE_EXECUTABLE      = 0x4,
 }
 
 BuildStatus :: enum i32 {
-	CL_BUILD_SUCCESS     = 0,
-	CL_BUILD_NONE        = -1,
-	CL_BUILD_ERROR       = -2,
-	CL_BUILD_IN_PROGRESS = -3,
+	BUILD_SUCCESS     = 0,
+	BUILD_NONE        = -1,
+	BUILD_ERROR       = -2,
+	BUILD_IN_PROGRESS = -3,
 }
 
 KernelInfo :: enum u32 {
-	CL_KERNEL_FUNCTION_NAME   = 0x1190,
-	CL_KERNEL_NUM_ARGS        = 0x1191,
-	CL_KERNEL_REFERENCE_COUNT = 0x1192,
-	CL_KERNEL_CONTEXT         = 0x1193,
-	CL_KERNEL_PROGRAM         = 0x1194,
+	KERNEL_FUNCTION_NAME   = 0x1190,
+	KERNEL_NUM_ARGS        = 0x1191,
+	KERNEL_REFERENCE_COUNT = 0x1192,
+	KERNEL_CONTEXT         = 0x1193,
+	KERNEL_PROGRAM         = 0x1194,
 	// CL_VERSION_1_2
-	CL_KERNEL_ATTRIBUTES      = 0x1195,
+	KERNEL_ATTRIBUTES      = 0x1195,
 }
 
 
 KernelArgInfo :: enum u32 {
 	// CL_VERSION_1_2
-	CL_KERNEL_ARG_ADDRESS_QUALIFIER = 0x1196,
-	CL_KERNEL_ARG_ACCESS_QUALIFIER  = 0x1197,
-	CL_KERNEL_ARG_TYPE_NAME         = 0x1198,
-	CL_KERNEL_ARG_TYPE_QUALIFIER    = 0x1199,
-	CL_KERNEL_ARG_NAME              = 0x119A,
+	KERNEL_ARG_ADDRESS_QUALIFIER = 0x1196,
+	KERNEL_ARG_ACCESS_QUALIFIER  = 0x1197,
+	KERNEL_ARG_TYPE_NAME         = 0x1198,
+	KERNEL_ARG_TYPE_QUALIFIER    = 0x1199,
+	KERNEL_ARG_NAME              = 0x119A,
 }
 
 
 KernelArgAddressQualifier :: enum u32 {
 	// CL_VERSION_1_2
-	CL_KERNEL_ARG_ADDRESS_GLOBAL   = 0x119B,
-	CL_KERNEL_ARG_ADDRESS_LOCAL    = 0x119C,
-	CL_KERNEL_ARG_ADDRESS_CONSTANT = 0x119D,
-	CL_KERNEL_ARG_ADDRESS_PRIVATE  = 0x119E,
+	KERNEL_ARG_ADDRESS_GLOBAL   = 0x119B,
+	KERNEL_ARG_ADDRESS_LOCAL    = 0x119C,
+	KERNEL_ARG_ADDRESS_CONSTANT = 0x119D,
+	KERNEL_ARG_ADDRESS_PRIVATE  = 0x119E,
 }
 
 
 KernelArgAccessQualifier :: enum u32 {
 	// CL_VERSION_1_2
-	CL_KERNEL_ARG_ACCESS_READ_ONLY  = 0x11A0,
-	CL_KERNEL_ARG_ACCESS_WRITE_ONLY = 0x11A1,
-	CL_KERNEL_ARG_ACCESS_READ_WRITE = 0x11A2,
-	CL_KERNEL_ARG_ACCESS_NONE       = 0x11A3,
+	KERNEL_ARG_ACCESS_READ_ONLY  = 0x11A0,
+	KERNEL_ARG_ACCESS_WRITE_ONLY = 0x11A1,
+	KERNEL_ARG_ACCESS_READ_WRITE = 0x11A2,
+	KERNEL_ARG_ACCESS_NONE       = 0x11A3,
 }
 
 
 KernelArgTypeQualifier :: enum u32 {
 	// CL_VERSION_1_2
-	CL_KERNEL_ARG_TYPE_NONE     = 0,
-	CL_KERNEL_ARG_TYPE_CONST    = (1 << 0),
-	CL_KERNEL_ARG_TYPE_RESTRICT = (1 << 1),
-	CL_KERNEL_ARG_TYPE_VOLATILE = (1 << 2),
+	KERNEL_ARG_TYPE_NONE     = 0,
+	KERNEL_ARG_TYPE_CONST    = (1 << 0),
+	KERNEL_ARG_TYPE_RESTRICT = (1 << 1),
+	KERNEL_ARG_TYPE_VOLATILE = (1 << 2),
 	// CL_VERSION_2_0
-	CL_KERNEL_ARG_TYPE_PIPE     = (1 << 3),
+	KERNEL_ARG_TYPE_PIPE     = (1 << 3),
 }
 
 KernelWorkGroupInfo :: enum u32 {
-	CL_KERNEL_WORK_GROUP_SIZE                    = 0x11B0,
-	CL_KERNEL_COMPILE_WORK_GROUP_SIZE            = 0x11B1,
-	CL_KERNEL_LOCAL_MEM_SIZE                     = 0x11B2,
-	CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE = 0x11B3,
-	CL_KERNEL_PRIVATE_MEM_SIZE                   = 0x11B4,
+	KERNEL_WORK_GROUP_SIZE                    = 0x11B0,
+	KERNEL_COMPILE_WORK_GROUP_SIZE            = 0x11B1,
+	KERNEL_LOCAL_MEM_SIZE                     = 0x11B2,
+	KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE = 0x11B3,
+	KERNEL_PRIVATE_MEM_SIZE                   = 0x11B4,
 	// CL_VERSION_1_2
-	CL_KERNEL_GLOBAL_WORK_SIZE                   = 0x11B5,
+	KERNEL_GLOBAL_WORK_SIZE                   = 0x11B5,
 }
 
 KernelSubGroupInfo :: enum u32 {
 	// CL_VERSION_2_1
-	CL_KERNEL_MAX_SUB_GROUP_SIZE_FOR_NDRANGE = 0x2033,
-	CL_KERNEL_SUB_GROUP_COUNT_FOR_NDRANGE    = 0x2034,
-	CL_KERNEL_LOCAL_SIZE_FOR_SUB_GROUP_COUNT = 0x11B8,
-	CL_KERNEL_MAX_NUM_SUB_GROUPS             = 0x11B9,
-	CL_KERNEL_COMPILE_NUM_SUB_GROUPS         = 0x11BA,
+	KERNEL_MAX_SUB_GROUP_SIZE_FOR_NDRANGE = 0x2033,
+	KERNEL_SUB_GROUP_COUNT_FOR_NDRANGE    = 0x2034,
+	KERNEL_LOCAL_SIZE_FOR_SUB_GROUP_COUNT = 0x11B8,
+	KERNEL_MAX_NUM_SUB_GROUPS             = 0x11B9,
+	KERNEL_COMPILE_NUM_SUB_GROUPS         = 0x11BA,
 }
 
 
 KernelExecInfo :: enum u32 {
 	// CL_VERSION_2_0
-	CL_KERNEL_EXEC_INFO_SVM_PTRS              = 0x11B6,
-	CL_KERNEL_EXEC_INFO_SVM_FINE_GRAIN_SYSTEM = 0x11B7,
+	KERNEL_EXEC_INFO_SVM_PTRS              = 0x11B6,
+	KERNEL_EXEC_INFO_SVM_FINE_GRAIN_SYSTEM = 0x11B7,
 }
 
 
 /* cl_mem_flags and cl_svm_mem_flags - bitfield */
 SvmMemFlags :: enum u64 {
-	CL_MEM_READ_WRITE            = (1 << 0),
-	CL_MEM_WRITE_ONLY            = (1 << 1),
-	CL_MEM_READ_ONLY             = (1 << 2),
-	CL_MEM_USE_HOST_PTR          = (1 << 3),
-	CL_MEM_ALLOC_HOST_PTR        = (1 << 4),
-	CL_MEM_COPY_HOST_PTR         = (1 << 5),
+	MEM_READ_WRITE            = (1 << 0),
+	MEM_WRITE_ONLY            = (1 << 1),
+	MEM_READ_ONLY             = (1 << 2),
+	MEM_USE_HOST_PTR          = (1 << 3),
+	MEM_ALLOC_HOST_PTR        = (1 << 4),
+	MEM_COPY_HOST_PTR         = (1 << 5),
 	/* reserved                                   (1 << 6)    */
 	//CL_VERSION_1_2
-	CL_MEM_HOST_WRITE_ONLY       = (1 << 7),
-	CL_MEM_HOST_READ_ONLY        = (1 << 8),
-	CL_MEM_HOST_NO_ACCESS        = (1 << 9),
+	MEM_HOST_WRITE_ONLY       = (1 << 7),
+	MEM_HOST_READ_ONLY        = (1 << 8),
+	MEM_HOST_NO_ACCESS        = (1 << 9),
 
 
 	// CL_VERSION_2_0
-	CL_MEM_SVM_FINE_GRAIN_BUFFER = (1 << 10), /* used by cl_svm_mem_flags only */
-	CL_MEM_SVM_ATOMICS           = (1 << 11), /* used by cl_svm_mem_flags only */
-	CL_MEM_KERNEL_READ_AND_WRITE = (1 << 12),
+	MEM_SVM_FINE_GRAIN_BUFFER = (1 << 10), /* used by cl_svm_mem_flags only */
+	MEM_SVM_ATOMICS           = (1 << 11), /* used by cl_svm_mem_flags only */
+	MEM_KERNEL_READ_AND_WRITE = (1 << 12),
 }
 
 MemFlags :: enum u64 {
-	CL_MEM_READ_WRITE            = (1 << 0),
-	CL_MEM_WRITE_ONLY            = (1 << 1),
-	CL_MEM_READ_ONLY             = (1 << 2),
-	CL_MEM_USE_HOST_PTR          = (1 << 3),
-	CL_MEM_ALLOC_HOST_PTR        = (1 << 4),
-	CL_MEM_COPY_HOST_PTR         = (1 << 5),
+	MEM_READ_WRITE            = (1 << 0),
+	MEM_WRITE_ONLY            = (1 << 1),
+	MEM_READ_ONLY             = (1 << 2),
+	MEM_USE_HOST_PTR          = (1 << 3),
+	MEM_ALLOC_HOST_PTR        = (1 << 4),
+	MEM_COPY_HOST_PTR         = (1 << 5),
 	/* reserved                                   (1 << 6)    */
 	//CL_VERSION_1_2
-	CL_MEM_HOST_WRITE_ONLY       = (1 << 7),
-	CL_MEM_HOST_READ_ONLY        = (1 << 8),
-	CL_MEM_HOST_NO_ACCESS        = (1 << 9),
+	MEM_HOST_WRITE_ONLY       = (1 << 7),
+	MEM_HOST_READ_ONLY        = (1 << 8),
+	MEM_HOST_NO_ACCESS        = (1 << 9),
 	// CL_VERSION_2_0
-	CL_MEM_KERNEL_READ_AND_WRITE = (1 << 12),
+	MEM_KERNEL_READ_AND_WRITE = (1 << 12),
 }
 
 
 MemMigrationFlags :: enum u64 {
 	//CL_VERSION_1_2
-	CL_MIGRATE_MEM_OBJECT_HOST              = (1 << 0),
-	CL_MIGRATE_MEM_OBJECT_CONTENT_UNDEFINED = (1 << 1),
+	MIGRATE_MEM_OBJECT_HOST              = (1 << 0),
+	MIGRATE_MEM_OBJECT_CONTENT_UNDEFINED = (1 << 1),
 }
 
 
 MemObjectType :: enum u32 {
-	CL_MEM_OBJECT_BUFFER         = 0x10F0,
-	CL_MEM_OBJECT_IMAGE2D        = 0x10F1,
-	CL_MEM_OBJECT_IMAGE3D        = 0x10F2,
+	MEM_OBJECT_BUFFER         = 0x10F0,
+	MEM_OBJECT_IMAGE2D        = 0x10F1,
+	MEM_OBJECT_IMAGE3D        = 0x10F2,
 	// CL_VERSION_1_2
-	CL_MEM_OBJECT_IMAGE2D_ARRAY  = 0x10F3,
-	CL_MEM_OBJECT_IMAGE1D        = 0x10F4,
-	CL_MEM_OBJECT_IMAGE1D_ARRAY  = 0x10F5,
-	CL_MEM_OBJECT_IMAGE1D_BUFFER = 0x10F6,
+	MEM_OBJECT_IMAGE2D_ARRAY  = 0x10F3,
+	MEM_OBJECT_IMAGE1D        = 0x10F4,
+	MEM_OBJECT_IMAGE1D_ARRAY  = 0x10F5,
+	MEM_OBJECT_IMAGE1D_BUFFER = 0x10F6,
 
 	// CL_VERSION_2_0
-	CL_MEM_OBJECT_PIPE           = 0x10F7,
+	MEM_OBJECT_PIPE           = 0x10F7,
 }
 
 MemInfo :: enum u32 {
-	CL_MEM_TYPE                 = 0x1100,
-	CL_MEM_FLAGS                = 0x1101,
-	CL_MEM_SIZE                 = 0x1102,
-	CL_MEM_HOST_PTR             = 0x1103,
-	CL_MEM_MAP_COUNT            = 0x1104,
-	CL_MEM_REFERENCE_COUNT      = 0x1105,
-	CL_MEM_CONTEXT              = 0x1106,
+	MEM_TYPE                 = 0x1100,
+	MEM_FLAGS                = 0x1101,
+	MEM_SIZE                 = 0x1102,
+	MEM_HOST_PTR             = 0x1103,
+	MEM_MAP_COUNT            = 0x1104,
+	MEM_REFERENCE_COUNT      = 0x1105,
+	MEM_CONTEXT              = 0x1106,
 	// CL_VERSION_1_1
-	CL_MEM_ASSOCIATED_MEMOBJECT = 0x1107,
-	CL_MEM_OFFSET               = 0x1108,
+	MEM_ASSOCIATED_MEMOBJECT = 0x1107,
+	MEM_OFFSET               = 0x1108,
 
 	// CL_VERSION_2_0
-	CL_MEM_USES_SVM_POINTER     = 0x1109,
+	MEM_USES_SVM_POINTER     = 0x1109,
 
 	// CL_VERSION_3_0
-	CL_MEM_PROPERTIES           = 0x110A,
+	MEM_PROPERTIES           = 0x110A,
 }
 
 
 MapFlags :: enum u64 {
-	CL_MAP_READ                    = (1 << 0),
-	CL_MAP_WRITE                   = (1 << 1),
+	MAP_READ                    = (1 << 0),
+	MAP_WRITE                   = (1 << 1),
 	// CL_VERSION_1_2
-	CL_MAP_WRITE_INVALIDATE_REGION = (1 << 2),
+	MAP_WRITE_INVALIDATE_REGION = (1 << 2),
 }
 
 EventInfo :: enum u32 {
-	CL_EVENT_COMMAND_QUEUE            = 0x11D0,
-	CL_EVENT_COMMAND_TYPE             = 0x11D1,
-	CL_EVENT_REFERENCE_COUNT          = 0x11D2,
-	CL_EVENT_COMMAND_EXECUTION_STATUS = 0x11D3,
+	EVENT_COMMAND_QUEUE            = 0x11D0,
+	EVENT_COMMAND_TYPE             = 0x11D1,
+	EVENT_REFERENCE_COUNT          = 0x11D2,
+	EVENT_COMMAND_EXECUTION_STATUS = 0x11D3,
 	// CL_VERSION_1_1
-	CL_EVENT_CONTEXT                  = 0x11D4,
+	EVENT_CONTEXT                  = 0x11D4,
 }
 
 
 ProfilingInfo :: enum u32 {
-	CL_PROFILING_COMMAND_QUEUED   = 0x1280,
-	CL_PROFILING_COMMAND_SUBMIT   = 0x1281,
-	CL_PROFILING_COMMAND_START    = 0x1282,
-	CL_PROFILING_COMMAND_END      = 0x1283,
+	PROFILING_COMMAND_QUEUED   = 0x1280,
+	PROFILING_COMMAND_SUBMIT   = 0x1281,
+	PROFILING_COMMAND_START    = 0x1282,
+	PROFILING_COMMAND_END      = 0x1283,
 	// CL_VERSION_2_0
-	CL_PROFILING_COMMAND_COMPLETE = 0x1284,
+	PROFILING_COMMAND_COMPLETE = 0x1284,
 }
 
 
 DeviceFpConfig :: enum u64 {
-	CL_FP_DENORM                        = (1 << 0),
-	CL_FP_INF_NAN                       = (1 << 1),
-	CL_FP_ROUND_TO_NEAREST              = (1 << 2),
-	CL_FP_ROUND_TO_ZERO                 = (1 << 3),
-	CL_FP_ROUND_TO_INF                  = (1 << 4),
-	CL_FP_FMA                           = (1 << 5),
+	FP_DENORM                        = (1 << 0),
+	FP_INF_NAN                       = (1 << 1),
+	FP_ROUND_TO_NEAREST              = (1 << 2),
+	FP_ROUND_TO_ZERO                 = (1 << 3),
+	FP_ROUND_TO_INF                  = (1 << 4),
+	FP_FMA                           = (1 << 5),
 	// CL_VERSION_1_1
-	CL_FP_SOFT_FLOAT                    = (1 << 6),
+	FP_SOFT_FLOAT                    = (1 << 6),
 
 	// CL_VERSION_1_2
-	CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT = (1 << 7),
+	FP_CORRECTLY_ROUNDED_DIVIDE_SQRT = (1 << 7),
 }
 
 
 DeviceSvmCapabilities :: enum u64 {
 	// CL_VERSION_2_0
-	CL_DEVICE_SVM_COARSE_GRAIN_BUFFER = (1 << 0),
-	CL_DEVICE_SVM_FINE_GRAIN_BUFFER   = (1 << 1),
-	CL_DEVICE_SVM_FINE_GRAIN_SYSTEM   = (1 << 2),
-	CL_DEVICE_SVM_ATOMICS             = (1 << 3),
+	DEVICE_SVM_COARSE_GRAIN_BUFFER = (1 << 0),
+	DEVICE_SVM_FINE_GRAIN_BUFFER   = (1 << 1),
+	DEVICE_SVM_FINE_GRAIN_SYSTEM   = (1 << 2),
+	DEVICE_SVM_ATOMICS             = (1 << 3),
 }
 

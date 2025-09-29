@@ -978,6 +978,41 @@ SetEventCallback :: #force_inline proc "c" (
 
 // CL_VERSION_1_2
 
+CreateSubDevices :: #force_inline proc "c" (
+	in_device: DeviceId,
+	properties: []DevicePartitionProperty,
+	num_devices: u32,
+	out_devices: [^]DeviceId,
+	num_devices_ret: ^u32,
+) -> ErrorCodes {
+
+	if impl_CreateSubDevices == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
+
+	// properties verifications
+	if len(properties) == 0 do return ErrorCodes.INVALID_VALUE
+	if properties[len(properties) - 1] != DevicePartitionProperty.BY_COUNTS_LIST_END do return ErrorCodes.INVALID_VALUE
+	return ErrorCodes(
+		impl_CreateSubDevices(
+			in_device,
+			raw_data(properties),
+			num_devices,
+			out_devices,
+			num_devices_ret,
+		),
+	)
+}
+
+RetainDevice :: #force_inline proc "c" (device: DeviceId) -> ErrorCodes {
+	if impl_RetainDevice == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
+	return ErrorCodes(impl_RetainDevice(device))
+}
+
+ReleaseDevice :: #force_inline proc "c" (device: DeviceId) -> ErrorCodes {
+	if impl_ReleaseDevice == nil do return ErrorCodes.INVALID_VALUE
+	return ErrorCodes(impl_ReleaseDevice(device))
+}
+
+
 CreateProgramWithBuiltInKernels :: #force_inline proc "c" (
 	cl_context: Context,
 	num_devices: u32,

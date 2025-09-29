@@ -602,6 +602,18 @@ load_1_1 :: proc(set_proc_address: Set_Proc_Address_Type) {
 
 // CL_VERSION_1_2
 
+impl_CreateSubDevices: proc "c" (
+	in_device: DeviceId,
+	properties: [^]DevicePartitionProperty,
+	num_devices: u32,
+	out_devices: [^]DeviceId,
+	num_devices_ret: ^u32,
+) -> i32
+
+impl_RetainDevice: proc "c" (device: DeviceId) -> i32
+impl_ReleaseDevice: proc "c" (device: DeviceId) -> i32
+
+
 impl_CreateProgramWithBuiltInKernels: proc "c" (
 	cl_context: Context,
 	num_devices: u32,
