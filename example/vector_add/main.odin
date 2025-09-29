@@ -12,7 +12,7 @@ init_platform :: proc(platform: ^cl.PlatformId) {
 	cl.check(cl.GetPlatformIDs(0, nil, &numPlatforms))
 	cl.check(cl.GetPlatformIDs(1, platform, nil))
 	platform_name: [256]u8
-	cl.check(cl.GetPlatformInfo(platform^, .CL_PLATFORM_NAME, 256, &platform_name[0], nil))
+	cl.check(cl.GetPlatformInfo(platform^, .PLATFORM_NAME, 256, &platform_name[0], nil))
 	log.debugf("Platform: %s", cstring(&platform_name[0]))
 }
 

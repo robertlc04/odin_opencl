@@ -37,7 +37,7 @@ init_platform :: proc() {
 	name: [256]u8
 
 	for platform in platforms {
-		cl.check(cl.GetPlatformInfo(platform, .CL_PLATFORM_NAME, 256, &name[0], nil))
+		cl.check(cl.GetPlatformInfo(platform, .PLATFORM_NAME, 256, &name[0], nil))
 		log.debugf("Platform Name: %s", cstring(&name[0]))
 	}
 
