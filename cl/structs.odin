@@ -9,13 +9,6 @@ Platform :: struct {
 	info: PlatformInfo,
 }
 
-// BASIC INFORMATION
-// CL_PLATFORM_PROFILE
-// CL_PLATFORM_VERSION
-// CL_PLATFORM_NAME
-// CL_PLATFORM_VENDOR
-// CL_PLATFORM_EXTENSIONS
-
 PlatformInfo :: struct {
 	profile:    cstring,
 	version:    cstring,
@@ -39,9 +32,22 @@ DeviceInfo :: struct {
 	extensions:       cstring,
 	// For specifig working
 	il_version:       cstring,
+	little_endian:    b8,
+	available:        b8,
+	parent:           clc.DeviceId, // If parent it's null this it's a root device
 	single_fp_config: u64, // This it's configured for bit shifting if available
-	little_endian:    bool,
-	available:        bool,
 	svm_capabilities: u64, // This it's configured for bit shifting if available
+}
+
+// Context
+Context :: struct {
+	id:   clc.Context,
+	info: ContextInfo,
+}
+
+ContextInfo :: struct {
+	ref_count:   u32,
+	num_devices: u32,
+	properties:  []clc.ContextProperties, // Can be 0
 }
 
