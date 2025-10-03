@@ -51,3 +51,25 @@ ContextInfo :: struct {
 	properties:  []clc.ContextProperties, // Can be 0
 }
 
+// Runtime Needs
+CommandQueue :: struct {
+	id:   clc.CommandQueue,
+	info: CommandQueueInfo,
+}
+
+CommandQueueInfo :: struct {
+	ctx_id:     clc.Context,
+	dev_id:     clc.DeviceId,
+	properties: []clc.CommandQueueProperties_t,
+	size:       u32,
+}
+
+// Runtime
+
+Runtime :: struct {
+	kernels:    any,
+	cmd_queues: []CommandQueue,
+	buffers:    any,
+	events:     any, // can be empty
+}
+
