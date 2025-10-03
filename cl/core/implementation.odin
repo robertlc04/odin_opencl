@@ -3,9 +3,9 @@ package clcore
 
 import "core:dynlib"
 
-loaded_up_to: [2]int
-loaded_up_to_major := 0
-loaded_up_to_minor := 0
+loaded_up_to: [2]uint
+loaded_up_to_major: uint
+loaded_up_to_minor: uint
 
 Set_Proc_Address_Type :: #type proc(p: rawptr, name: cstring, lib: dynlib.Library = nil)
 
@@ -27,7 +27,7 @@ DeprecatedInVersion :: enum {
 }
 // Loading
 load_up_to :: proc(
-	major, minor: int,
+	major, minor: uint,
 	set_proc_address: Set_Proc_Address_Type,
 	lib: dynlib.Library = nil,
 ) {
@@ -168,7 +168,7 @@ impl_ReleaseContext: proc "c" (cl_context: Context) -> i32
 impl_CreateCommandQueue: proc "c" (
 	cl_context: Context,
 	device: DeviceId,
-	properties: ^CommandQueueProperties,
+	properties: ^u64,
 	errcode_ret: ^i32,
 ) -> CommandQueue
 

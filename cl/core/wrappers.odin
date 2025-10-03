@@ -1,4 +1,5 @@
 package clcore
+import "base:runtime"
 
 // TODO: Make a when ODIN_DEBUG for easy debuging with message error no handler needed for now
 // FIXME: Make a verification if the impl_* it's linked before executing it
@@ -125,11 +126,12 @@ ReleaseContext :: #force_inline proc "c" (cl_context: Context) -> ErrorCodes {
 	return ErrorCodes(impl_ReleaseContext(cl_context))
 }
 
+// FIXME: Problems with setting the properties
 /* Deprecated OpenCL 2.0 APIs */
 CreateCommandQueue :: #force_inline proc "c" (
 	cl_context: Context,
 	device: DeviceId,
-	properties: ^CommandQueueProperties,
+	properties: []CommandQueueProperties_t,
 	errcode_ret: ^ErrorCodes,
 ) -> (
 	cmd: CommandQueue,
@@ -138,7 +140,7 @@ CreateCommandQueue :: #force_inline proc "c" (
 		errcode_ret^ = ErrorCodes.PROCEDURE_NOT_LINKED
 	}
 	errcode: i32
-	cmd = impl_CreateCommandQueue(cl_context, device, properties, &errcode)
+	cmd = impl_CreateCommandQueue(cl_context, device, nil, &errcode)
 	errcode_ret^ = ErrorCodes(errcode)
 	return
 }
