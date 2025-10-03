@@ -168,7 +168,7 @@ impl_ReleaseContext: proc "c" (cl_context: Context) -> i32
 impl_CreateCommandQueue: proc "c" (
 	cl_context: Context,
 	device: DeviceId,
-	properties: ^u64,
+	property: u64,
 	errcode_ret: ^i32,
 ) -> CommandQueue
 
@@ -717,7 +717,7 @@ load_1_2 :: proc(set_proc_address: Set_Proc_Address_Type) {
 impl_CreateCommandQueueWithProperties: proc "c" (
 	cl_context: Context,
 	device: DeviceId,
-	properties: ^CommandQueueProperties,
+	properties: ^u64,
 	errcode_ret: ^i32,
 ) -> CommandQueue
 

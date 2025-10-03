@@ -131,7 +131,7 @@ ReleaseContext :: #force_inline proc "c" (cl_context: Context) -> ErrorCodes {
 CreateCommandQueue :: #force_inline proc "c" (
 	cl_context: Context,
 	device: DeviceId,
-	properties: []CommandQueueProperties_t,
+	property: CommandQueueProperties,
 	errcode_ret: ^ErrorCodes,
 ) -> (
 	cmd: CommandQueue,
@@ -140,7 +140,7 @@ CreateCommandQueue :: #force_inline proc "c" (
 		errcode_ret^ = ErrorCodes.PROCEDURE_NOT_LINKED
 	}
 	errcode: i32
-	cmd = impl_CreateCommandQueue(cl_context, device, nil, &errcode)
+	cmd = impl_CreateCommandQueue(cl_context, device, u64(property), &errcode)
 	errcode_ret^ = ErrorCodes(errcode)
 	return
 }
@@ -1236,7 +1236,7 @@ EnqueueBarrierWithWaitList :: #force_inline proc "c" (
 CreateCommandQueueWithProperties :: #force_inline proc "c" (
 	cl_context: Context,
 	device: DeviceId,
-	properties: ^CommandQueueProperties,
+	properties: []CommandQueueProperties_t,
 	errcode_ret: ^ErrorCodes,
 ) -> (
 	cmd: CommandQueue,
@@ -1245,7 +1245,10 @@ CreateCommandQueueWithProperties :: #force_inline proc "c" (
 		errcode_ret^ = ErrorCodes.PROCEDURE_NOT_LINKED
 	}
 	errcode: i32
-	cmd = impl_CreateCommandQueueWithProperties(cl_context, device, properties, &errcode)
+
+	val: []u64
+	// FIXME: Make a helper for transmute from []CommandQueueProperties_t to ^u64
+	cmd = impl_CreateCommandQueueWithProperties(cl_context, device, nil, &errcode)
 	errcode_ret^ = ErrorCodes(errcode)
 	return
 }
