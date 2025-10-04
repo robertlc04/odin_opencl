@@ -1246,9 +1246,36 @@ CreateCommandQueueWithProperties :: #force_inline proc "c" (
 	}
 	errcode: i32
 
-	val: []u64
+	val: [5]u64
+
+	detected_prop: bool = false
+	detected_size: bool = false
+
+	for prop in properties {
+		if prop.key == .QUEUE_PROPERTIES && !detected_prop {
+			detected_prop = true
+		}
+		if prop.key == .QUEUE_SIZE && !detected_size {
+			detected_prop = true
+		}
+
+	}
+
+	if detected_prop do val[0] = u64(CommandQueuePropertiesKey.QUEUE_PROPERTIES)
+	if detected_size do val[2] = u64(CommandQueuePropertiesKey.QUEUE_SIZE)
+
+	for prop in properties {
+		if prop.key == .QUEUE_PROPERTIES && detected_prop {
+			val[1] |= u64(prop.value)
+		}
+
+		if prop.key == .QUEUE_SIZE && detected_size {
+			val[3] |= u64(prop.value)
+		}
+	}
+
 	// FIXME: Make a helper for transmute from []CommandQueueProperties_t to ^u64
-	cmd = impl_CreateCommandQueueWithProperties(cl_context, device, nil, &errcode)
+	cmd = impl_CreateCommandQueueWithProperties(cl_context, device, &val[0], &errcode)
 	errcode_ret^ = ErrorCodes(errcode)
 	return
 }
