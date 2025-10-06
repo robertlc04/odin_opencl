@@ -1,5 +1,5 @@
 #+private
-package clcore
+package cl
 
 import "core:dynlib"
 
@@ -69,7 +69,6 @@ load_up_to :: proc(
 	}
 }
 
-
 // Callbacks
 CreateContextCallback :: #type proc "system" (
 	errinfo: cstring,
@@ -85,7 +84,7 @@ ProcPfnNotify :: #type proc "system" (
 	user_data: rawptr,
 )
 
-ProgramCallback :: #type proc "system" (program: Program, user_data: rawptr)
+ProgramCallback :: #type proc "c" (program: Program, user_data: rawptr)
 
 MemFreeCallback :: #type proc "system" (
 	queue: CommandQueue,
@@ -95,6 +94,7 @@ MemFreeCallback :: #type proc "system" (
 )
 
 EventCallback :: #type proc "system" (event: Event, event_command_status: i32, user_data: rawptr)
+
 
 // CL_VERSION_1_0
 
@@ -137,7 +137,7 @@ impl_CreateContext: proc "c" (
 	properties: ^ContextProperties,
 	num_devices: u32,
 	devices: [^]DeviceId,
-	pfn_notify: ^CreateContextCallback,
+	pfn_notify: CreateContextCallback,
 	user_data: rawptr,
 	errcode_ret: ^i32,
 ) -> Context
@@ -145,7 +145,7 @@ impl_CreateContext: proc "c" (
 impl_CreateContextFromType: proc "c" (
 	properties: ^ContextProperties,
 	device_type: DeviceType,
-	pfn_notify: ^CreateContextCallback,
+	pfn_notify: CreateContextCallback,
 	user_data: rawptr,
 	errcode_ret: ^i32,
 ) -> Context
@@ -225,7 +225,7 @@ impl_BuildProgram: proc "c" (
 	num_devices: u32,
 	device_list: [^]DeviceId,
 	options: cstring,
-	pfn_notify: ^ProgramCallback,
+	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 ) -> i32
 
@@ -629,7 +629,7 @@ impl_CompileProgram: proc "c" (
 	num_input_headers: u32,
 	input_headers: [^]Program,
 	header_include_names: [^]cstring,
-	pfn_notify: ^ProgramCallback,
+	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 ) -> i32
 impl_LinkProgram: proc "c" (
@@ -639,7 +639,7 @@ impl_LinkProgram: proc "c" (
 	options: cstring,
 	num_input_programs: u32,
 	input_programs: [^]Program,
-	pfn_notify: ^ProgramCallback,
+	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 	errcode_ret: ^i32,
 ) -> Program
@@ -717,7 +717,7 @@ load_1_2 :: proc(set_proc_address: Set_Proc_Address_Type) {
 impl_CreateCommandQueueWithProperties: proc "c" (
 	cl_context: Context,
 	device: DeviceId,
-	properties: ^u64,
+	#by_ptr properties: u64,
 	errcode_ret: ^i32,
 ) -> CommandQueue
 
@@ -735,7 +735,7 @@ impl_EnqueueSVMFree: proc "c" (
 	command_queue: CommandQueue,
 	num_svm_pointers: u32,
 	svm_pointers: [^]rawptr,
-	pfn_free_func: ^MemFreeCallback,
+	pfn_free_func: MemFreeCallback,
 	user_data: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
@@ -844,7 +844,7 @@ load_2_1 :: proc(set_proc_address: Set_Proc_Address_Type) {
 // Deprecated in Version 2.2
 impl_SetProgramReleaseCallback: proc "c" (
 	program: Program,
-	pfn_notify: ^ProgramCallback,
+	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 ) -> i32
 impl_SetProgramSpecializationConstant: proc "c" (

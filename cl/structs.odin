@@ -1,15 +1,12 @@
 package cl
 
-
-import clc "./core"
-
 // Platform
-Platform :: struct {
-	id:   clc.PlatformId,
-	info: PlatformInfo,
+Platform_t :: struct {
+	id:   PlatformId,
+	info: PlatformInfo_t,
 }
 
-PlatformInfo :: struct {
+PlatformInfo_t :: struct {
 	profile:    cstring,
 	version:    cstring,
 	name:       cstring,
@@ -18,12 +15,12 @@ PlatformInfo :: struct {
 }
 
 // Device
-Device :: struct {
-	id:   clc.DeviceId,
-	info: DeviceInfo,
+Device_t :: struct {
+	id:   DeviceId,
+	info: DeviceInfo_t,
 }
 
-DeviceInfo :: struct {
+DeviceInfo_t :: struct {
 	name:             cstring,
 	vendor:           cstring,
 	profile:          cstring,
@@ -34,42 +31,54 @@ DeviceInfo :: struct {
 	il_version:       cstring,
 	little_endian:    b8,
 	available:        b8,
-	parent:           clc.DeviceId, // If parent it's null this it's a root device
+	parent:           DeviceId, // If parent it's null this it's a root device
 	single_fp_config: u64, // This it's configured for bit shifting if available
 	svm_capabilities: u64, // This it's configured for bit shifting if available
 }
 
 // Context
-Context :: struct {
-	id:   clc.Context,
-	info: ContextInfo,
+Context_t :: struct {
+	id:   Context,
+	info: ContextInfo_t,
 }
 
-ContextInfo :: struct {
+ContextInfo_t :: struct {
 	ref_count:   u32,
 	num_devices: u32,
-	properties:  []clc.ContextProperties, // Can be 0
+	properties:  []ContextProperties, // Can be 0
 }
 
-// Runtime Needs
-CommandQueue :: struct {
-	id:   clc.CommandQueue,
-	info: CommandQueueInfo,
+CommandQueue_t :: struct {
+	id:   CommandQueue,
+	info: CommandQueueInfo_t,
 }
 
-CommandQueueInfo :: struct {
-	ctx_id:     clc.Context,
-	dev_id:     clc.DeviceId,
-	properties: []clc.CommandQueueProperties_t,
+CommandQueueInfo_t :: struct {
+	ctx_id:     Context,
+	dev_id:     DeviceId,
+	properties: []CommandQueueProperties_t,
 	size:       u32,
 }
 
-// Runtime
-
-Runtime :: struct {
-	kernels:    any,
-	cmd_queues: []CommandQueue,
-	buffers:    any,
-	events:     any, // can be empty
+Program_t :: struct {
+	id:           Program,
+	kernels_name: []cstring,
+	build_info:   ProgramBuildInfo_t,
 }
+
+ProgramBuildInfo_t :: struct {
+	status:      BuildStatus,
+	logs:        []cstring,
+	binary_type: ProgramBinaryType,
+}
+
+
+Kernel_t :: struct {}
+KernelInfo_t :: struct {}
+
+Buffer_t :: struct {}
+BufferInfo_t :: struct {}
+
+Event_t :: struct {}
+EventInfo_t :: struct {}
 

@@ -1,4 +1,4 @@
-package clcore
+package cl
 
 // Errors
 ErrorCodes :: enum {
@@ -332,6 +332,7 @@ ContextProperties :: enum i32 {
 }
 
 CommandQueueProperties :: enum u64 {
+	NO_PROPERTY                         = 0x0, // Personal for automatic set
 	QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE = (1 << 0),
 	QUEUE_PROFILING_ENABLE              = (1 << 1),
 	// CL_VERSION_2_0
@@ -340,6 +341,7 @@ CommandQueueProperties :: enum u64 {
 }
 
 CommandQueueInfo :: enum u32 {
+	NO_PROPERTY            = 0x0, // Personal for automatic set
 	QUEUE_CONTEXT          = 0x1090,
 	QUEUE_DEVICE           = 0x1091,
 	QUEUE_REFERENCE_COUNT  = 0x1092,
@@ -353,7 +355,17 @@ CommandQueueInfo :: enum u32 {
 	//CL_VERSION_3_0
 	QUEUE_PROPERTIES_ARRAY = 0x1098,
 }
+// Custom CommandType for Usage
 
+CommandQueuePropertiesKey :: enum u32 {
+	QUEUE_PROPERTIES = 0x1093,
+	QUEUE_SIZE       = 0x1094,
+}
+
+CommandQueueProperties_t :: struct {
+	key:   CommandQueuePropertiesKey,
+	value: u64,
+}
 
 CommandType :: enum u32 {
 	COMMAND_NDRANGE_KERNEL       = 0x11F0,
@@ -424,14 +436,14 @@ ProgramInfo :: enum u32 {
 }
 
 ProgramBuildInfo :: enum u32 {
-	PROGRAM_BUILD_STATUS                     = 0x1181,
-	PROGRAM_BUILD_OPTIONS                    = 0x1182,
-	PROGRAM_BUILD_LOG                        = 0x1183,
+	STATUS                     = 0x1181,
+	OPTIONS                    = 0x1182,
+	LOG                        = 0x1183,
 	//CL_VERSION_1_2
-	PROGRAM_BINARY_TYPE                      = 0x1184,
+	BINARY_TYPE                = 0x1184,
 
 	//CL_VERSION_2_0
-	PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE = 0x1185,
+	GLOBAL_VARIABLE_TOTAL_SIZE = 0x1185,
 }
 
 // CL_VERSION_1_2

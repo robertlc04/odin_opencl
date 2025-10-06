@@ -9,7 +9,7 @@ import "core:os"
 import "core:strings"
 import "core:thread"
 
-import cl "../../cl/core"
+import cl "../../cl"
 
 Globals :: #type struct {
 	platform:   cl.PlatformId,
@@ -75,7 +75,7 @@ init_command_queue :: proc() {
 init_program :: proc() {
 	err: cl.ErrorCodes
 	program_source := #load("./generate_data.cl", cstring)
-	g.program = cl.CreateProgramWithSource(g.ctx, 1, &program_source, nil, &err)
+	g.program = cl.CreateProgramWithSource(g.ctx, 1, {program_source}, &err)
 	cl.check(err)
 
 	cl.check(cl.BuildProgram(g.program, 1, &g.device, "", nil, nil))
@@ -89,7 +89,7 @@ load_kernel :: proc() {
 
 prepare_result :: proc() {
 	err: cl.ErrorCodes
-	g.result_buf = cl.CreateBuffer(g.ctx, .CL_MEM_READ_WRITE, size_of(f32) * g.size * 3, nil, &err)
+	g.result_buf = cl.CreateBuffer(g.ctx, .MEM_READ_WRITE, size_of(f32) * g.size * 3, nil, &err)
 	cl.check(err)
 }
 

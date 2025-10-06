@@ -1,10 +1,11 @@
 package main
-
+import "base:runtime"
 import "core:c"
 import "core:fmt"
 import "core:log"
+import "core:strings"
 
-import cl "../../cl/core"
+import cl "../../cl"
 
 
 init_platform :: proc(platform: ^cl.PlatformId) {
@@ -56,15 +57,18 @@ main :: proc() {
 
 	size: i32
 	value: uint
-	cl.GetCommandQueueInfo(cmd_queue, .CL_QUEUE_SIZE, 4, &size, &value)
+	cl.GetCommandQueueInfo(cmd_queue, .QUEUE_SIZE, 4, &size, &value)
 	log.debugf("Queue Size: %d", size)
 	log.debugf("Value Size: %d", value)
 
 	// TODO: Prepare the Kernel ALMOST THERE !!!!!
 	program: cl.Program
 	program_source := #load("vector_add.cl", cstring)
+
+
+	program_il := #load("output.spv", []u8)
 	// program = cl.CreateProgramWithIL(ocl_context, raw_data(program_il), len(program_il), &error)
-	program = cl.CreateProgramWithSource(ocl_context, 1, &program_source, nil, &error)
+	program = cl.CreateProgramWithSource(ocl_context, 1, {program_source}, &error)
 
 	cl.check(error)
 	if program == nil do log.debug("Something Fail With Program Construction")
@@ -96,7 +100,7 @@ main :: proc() {
 
 	buffer_a: cl.Memory = cl.CreateBuffer(
 		ocl_context,
-		.CL_MEM_READ_ONLY | .CL_MEM_COPY_HOST_PTR,
+		.MEM_READ_ONLY | .MEM_COPY_HOST_PTR,
 		size_of(i32) * len(a_arr),
 		&a_arr[0],
 		&error,
@@ -105,7 +109,7 @@ main :: proc() {
 
 	buffer_b: cl.Memory = cl.CreateBuffer(
 		ocl_context,
-		.CL_MEM_READ_ONLY | .CL_MEM_COPY_HOST_PTR,
+		.MEM_READ_ONLY | .MEM_COPY_HOST_PTR,
 		size_of(i32) * len(b_arr),
 		&b_arr[0],
 		&error,
@@ -114,7 +118,7 @@ main :: proc() {
 
 	buffer_c: cl.Memory = cl.CreateBuffer(
 		ocl_context,
-		.CL_MEM_WRITE_ONLY | .CL_MEM_USE_HOST_PTR,
+		.MEM_WRITE_ONLY | .MEM_USE_HOST_PTR,
 		size_of(i32) * len(c_arr),
 		&c_arr[0],
 		&error,

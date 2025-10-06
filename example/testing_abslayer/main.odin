@@ -1,8 +1,7 @@
 package testing_abslayer
 
 
-import "../../cl"
-import clc "../../cl/core"
+import cl "../../cl"
 import "core:log"
 import "core:mem"
 
@@ -29,23 +28,37 @@ main :: proc() {
 		}
 	}
 
-	clc.load_opencl_procedures()
-	defer clc.unload_opencl_procedures()
+	cl.load_opencl_procedures()
+	defer cl.unload_opencl_procedures()
 
-
-	platforms: []cl.Platform
-	devices: []cl.Device
-	err: clc.ErrorCodes
+	platforms: []cl.Platform_t
+	ctx: cl.Context_t
+	device: []cl.Device_t
+	err: cl.ErrorCodes
 
 	platforms, err = cl.get_available_platforms()
-	clc.check(err)
+	cl.check(err)
 	defer cl.destroy_platforms(platforms)
 
-	devices, err = cl.get_available_devices(platforms[0])
-	clc.check(err)
-	defer cl.destroy_devices(devices)
+	for platform, i in platforms {
+		if len(device) != 0 do break
+		device, err = cl.get_available_devices(platform, .GPU)
+		cl.check(err)
+	}
+	defer cl.destroy_devices(device)
 
-	// free_all(context.temp_allocator)
+	err = cl.get_context(&ctx, device, device_t = cl.DeviceType.GPU)
+	cl.check(err)
+	defer cl.destroy_context(ctx)
+	cmd: []cl.CommandQueue_t
+	cmd, err = cl.get_command_queue(ctx, device)
+	cl.check(err)
+	defer cl.destroy_command_queue(cmd)
 
+
+	log.debugf("Platform Data: %v\n", platforms)
+	log.debugf("Device data: %v\n", device)
+	log.debugf("Context Data: %v\n", ctx)
+	log.debugf("CommandQueue Data: %v\n", cmd)
 }
 

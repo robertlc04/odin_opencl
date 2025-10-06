@@ -1,5 +1,5 @@
-package clcore
-import "base:runtime"
+package cl
+// import "base:runtime"
 
 // TODO: Make a when ODIN_DEBUG for easy debuging with message error no handler needed for now
 // FIXME: Make a verification if the impl_* it's linked before executing it
@@ -66,7 +66,7 @@ CreateContext :: #force_inline proc "c" (
 	properties: ^ContextProperties,
 	num_devices: u32,
 	devices: [^]DeviceId,
-	pfn_notify: ^CreateContextCallback,
+	pfn_notify: CreateContextCallback,
 	user_data: rawptr,
 	errcode_ret: ^ErrorCodes,
 ) -> (
@@ -83,7 +83,7 @@ CreateContext :: #force_inline proc "c" (
 CreateContextFromType :: #force_inline proc "c" (
 	properties: ^ContextProperties,
 	device_type: DeviceType,
-	pfn_notify: ^CreateContextCallback,
+	pfn_notify: CreateContextCallback,
 	user_data: rawptr,
 	errcode_ret: ^ErrorCodes,
 ) -> (
@@ -175,10 +175,9 @@ ReleaseCommandQueue :: #force_inline proc "c" (command_queue: CommandQueue) -> E
 
 
 CreateProgramWithSource :: #force_inline proc "c" (
-	cl_context: Context,
+	ctx: Context,
 	count: i32,
-	strings: [^]cstring,
-	lengths: [^]uint,
+	source: []cstring,
 	errcode_ret: ^ErrorCodes,
 ) -> (
 	program: Program,
@@ -188,8 +187,8 @@ CreateProgramWithSource :: #force_inline proc "c" (
 		errcode_ret^ = ErrorCodes.PROCEDURE_NOT_LINKED
 	}
 	errcode: i32
-
-	program = impl_CreateProgramWithSource(cl_context, count, strings, lengths, &errcode)
+	// Odin by default all cstring it's zero terminated
+	program = impl_CreateProgramWithSource(ctx, count, raw_data(source), nil, &errcode)
 
 	errcode_ret^ = ErrorCodes(errcode)
 	return
@@ -277,7 +276,7 @@ BuildProgram :: #force_inline proc "c" (
 	num_devices: u32,
 	device_list: [^]DeviceId,
 	options: cstring,
-	pfn_notify: ^ProgramCallback,
+	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 ) -> ErrorCodes {
 	if impl_BuildProgram == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
@@ -1048,7 +1047,7 @@ CompileProgram :: #force_inline proc "c" (
 	num_input_headers: u32,
 	input_headers: [^]Program,
 	header_include_names: [^]cstring,
-	pfn_notify: ^ProgramCallback,
+	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 ) -> ErrorCodes {
 	if impl_CompileProgram == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
@@ -1075,7 +1074,7 @@ LinkProgram :: #force_inline proc "c" (
 	options: cstring,
 	num_input_programs: u32,
 	input_programs: [^]Program,
-	pfn_notify: ^ProgramCallback,
+	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 	errcode_ret: ^ErrorCodes,
 ) -> (
@@ -1243,6 +1242,7 @@ CreateCommandQueueWithProperties :: #force_inline proc "c" (
 ) {
 	if impl_CreateCommandQueueWithProperties == nil {
 		errcode_ret^ = ErrorCodes.PROCEDURE_NOT_LINKED
+		return
 	}
 	errcode: i32
 
@@ -1275,7 +1275,7 @@ CreateCommandQueueWithProperties :: #force_inline proc "c" (
 	}
 
 	// FIXME: Make a helper for transmute from []CommandQueueProperties_t to ^u64
-	cmd = impl_CreateCommandQueueWithProperties(cl_context, device, &val[0], &errcode)
+	cmd = impl_CreateCommandQueueWithProperties(cl_context, device, val[0], &errcode)
 	errcode_ret^ = ErrorCodes(errcode)
 	return
 }
@@ -1306,7 +1306,7 @@ EnqueueSVMFree :: #force_inline proc "c" (
 	command_queue: CommandQueue,
 	num_svm_pointers: u32,
 	svm_pointers: [^]rawptr,
-	pfn_free_func: ^MemFreeCallback,
+	pfn_free_func: MemFreeCallback,
 	user_data: rawptr,
 	num_events_in_wait_list: u32,
 	event_wait_list: [^]Event,
@@ -1425,8 +1425,7 @@ EnqueueSVMUnmap :: #force_inline proc "c" (
 
 CreateProgramWithIL :: #force_inline proc "c" (
 	cl_context: Context,
-	il: rawptr,
-	length: uint,
+	il: []u8,
 	errcode_ret: ^ErrorCodes,
 ) -> (
 	program: Program,
@@ -1435,7 +1434,8 @@ CreateProgramWithIL :: #force_inline proc "c" (
 		errcode_ret^ = ErrorCodes.PROCEDURE_NOT_LINKED
 	}
 	errcode: i32
-	program = impl_CreateProgramWithIL(cl_context, il, length, &errcode)
+	length: uint = len(il)
+	program = impl_CreateProgramWithIL(cl_context, raw_data(il), length, &errcode)
 
 	errcode_ret^ = ErrorCodes(errcode)
 	return
@@ -1513,7 +1513,7 @@ EnqueueSVMMigrateMem :: #force_inline proc "c" (
 // Deprecated in Version 2.2
 SetProgramReleaseCallback :: #force_inline proc "c" (
 	program: Program,
-	pfn_notify: ^ProgramCallback,
+	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 ) -> ErrorCodes {
 	if impl_SetProgramReleaseCallback == nil do return ErrorCodes.PROCEDURE_NOT_LINKED

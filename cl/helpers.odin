@@ -1,7 +1,8 @@
-package clcore
+package cl
 
 import "core:c"
 import "core:fmt"
+import "core:slice"
 
 import "core:dynlib"
 
@@ -16,6 +17,7 @@ Program :: distinct rawptr
 Kernel :: distinct rawptr
 Memory :: distinct rawptr
 Event :: distinct rawptr
+
 
 lib_g: dynlib.Library
 
@@ -51,9 +53,10 @@ load_proc :: proc(p: rawptr, name: cstring, libcl: dynlib.Library = nil) {
 
 }
 
-load_opencl_procedures :: proc() {
+load_opencl_procedures :: proc(major_version: uint = 2, minor_version: uint = 2) {
 	// Load all OpenCL procedures
-	load_up_to(3, 0, load_proc)
+	load_up_to(major_version, minor_version, load_proc)
+
 }
 
 unload_opencl_procedures :: proc() {
@@ -75,5 +78,16 @@ check :: proc(result: ErrorCodes, location := #caller_location) {
 			location = location,
 		)
 	}
+}
+
+
+debug_get_informations :: proc(structure: any, error: ErrorCodes, location := #caller_location) {
+	log.debugf("Called from %d: %s", location.line, location.procedure)
+	log.debugf("Structure: %v", structure)
+	log.debugf("Error desc: %s", ErrorCodes_Descriptions[error])
+}
+
+compile_to_spirv :: proc(file_path: string) {
+
 }
 
