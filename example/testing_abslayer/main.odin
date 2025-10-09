@@ -34,6 +34,7 @@ main :: proc() {
 	platforms: []cl.Platform_t
 	ctx: cl.Context_t
 	device: []cl.Device_t
+	program: cl.Program_t
 	err: cl.ErrorCodes
 
 	platforms, err = cl.get_available_platforms()
@@ -55,10 +56,15 @@ main :: proc() {
 	cl.check(err)
 	defer cl.destroy_command_queue(cmd)
 
+	err = cl.get_program(ctx, device[0], &program, "./vector_add.cl")
+	cl.check(err)
+	defer cl.destroy_program({program})
+
 
 	log.debugf("Platform Data: %v\n", platforms)
 	log.debugf("Device data: %v\n", device)
 	log.debugf("Context Data: %v\n", ctx)
 	log.debugf("CommandQueue Data: %v\n", cmd)
+	log.debugf("Program Data: %v\n", program)
 }
 

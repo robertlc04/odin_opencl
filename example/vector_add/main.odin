@@ -13,7 +13,7 @@ init_platform :: proc(platform: ^cl.PlatformId) {
 	cl.check(cl.GetPlatformIDs(0, nil, &numPlatforms))
 	cl.check(cl.GetPlatformIDs(1, platform, nil))
 	platform_name: [256]u8
-	cl.check(cl.GetPlatformInfo(platform^, .PLATFORM_NAME, 256, &platform_name[0], nil))
+	cl.check(cl.GetPlatformInfo(platform^, .NAME, 256, &platform_name[0], nil))
 	log.debugf("Platform: %s", cstring(&platform_name[0]))
 }
 
@@ -23,7 +23,7 @@ init_device :: proc(platform: cl.PlatformId, device: ^cl.DeviceId) {
 	cl.check(cl.GetDeviceIDs(platform, cl.DeviceType.GPU, 1, device, nil))
 
 	name: [256]u8
-	cl.check(cl.GetDeviceInfo(device^, .DEVICE_NAME, 256, &name[0], nil))
+	cl.check(cl.GetDeviceInfo(device^, .NAME, 256, &name[0], nil))
 
 	log.debugf("Device: %s", cstring(&name[0]))
 }
@@ -81,7 +81,7 @@ main :: proc() {
 		return
 	}
 
-	cl.check(cl.BuildProgram(program, 1, &device, "", nil, nil))
+	cl.check(cl.BuildProgram(program, 1, {device}, "", nil, nil))
 
 	kernel: cl.Kernel
 	kernel = cl.CreateKernel(program, "vector_add", &error)
@@ -129,7 +129,6 @@ main :: proc() {
 	cl.SetKernelArg(kernel, 1, size_of(cl.Memory), &buffer_b)
 	cl.SetKernelArg(kernel, 2, size_of(cl.Memory), &buffer_c)
 
-	// TODO: Finish the Implementation of Enqueue
 	global_size: uint = ARRAYS_SIZE
 	cl.check(cl.EnqueueNDRangeKernel(cmd_queue, kernel, 1, nil, &global_size, nil, 0, nil, nil))
 	cl.check(cl.Finish(cmd_queue))

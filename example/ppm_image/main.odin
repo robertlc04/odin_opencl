@@ -37,7 +37,7 @@ init_platform :: proc() {
 	name: [256]u8
 
 	for platform in platforms {
-		cl.check(cl.GetPlatformInfo(platform, .PLATFORM_NAME, 256, &name[0], nil))
+		cl.check(cl.GetPlatformInfo(platform, .NAME, 256, &name[0], nil))
 		log.debugf("Platform Name: %s", cstring(&name[0]))
 	}
 
@@ -54,7 +54,7 @@ init_device :: proc() {
 	name: [256]u8
 
 	for device in devices {
-		cl.check(cl.GetDeviceInfo(device, .DEVICE_NAME, 256, &name[0], nil))
+		cl.check(cl.GetDeviceInfo(device, .NAME, 256, &name[0], nil))
 		log.debugf("Device Name: %s", cstring(&name[0]))
 	}
 	g.device = devices[0]
@@ -78,7 +78,7 @@ init_program :: proc() {
 	g.program = cl.CreateProgramWithSource(g.ctx, 1, {program_source}, &err)
 	cl.check(err)
 
-	cl.check(cl.BuildProgram(g.program, 1, &g.device, "", nil, nil))
+	cl.check(cl.BuildProgram(g.program, 1, {g.device}, "", nil, nil))
 }
 
 load_kernel :: proc() {

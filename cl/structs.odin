@@ -7,11 +7,11 @@ Platform_t :: struct {
 }
 
 PlatformInfo_t :: struct {
-	profile:    cstring,
-	version:    cstring,
-	name:       cstring,
-	vendor:     cstring,
-	extensions: cstring,
+	profile:    string,
+	version:    string,
+	name:       string,
+	vendor:     string,
+	extensions: string,
 }
 
 // Device
@@ -21,12 +21,12 @@ Device_t :: struct {
 }
 
 DeviceInfo_t :: struct {
-	name:             cstring,
-	vendor:           cstring,
-	profile:          cstring,
-	version:          cstring,
-	driver_version:   cstring,
-	extensions:       cstring,
+	name:             string,
+	vendor:           string,
+	profile:          string,
+	version:          string,
+	driver_version:   string,
+	extensions:       string,
 	// For specifig working
 	il_version:       cstring,
 	little_endian:    b8,
@@ -61,14 +61,20 @@ CommandQueueInfo_t :: struct {
 }
 
 Program_t :: struct {
-	id:           Program,
-	kernels_name: []cstring,
-	build_info:   ProgramBuildInfo_t,
+	id:         Program,
+	info:       ProgramInfo_t,
+	build_info: ProgramBuildInfo_t,
+}
+
+ProgramInfo_t :: struct {
+	ctx:          Context,
+	devs:         []DeviceId,
+	kernels_name: cstring,
 }
 
 ProgramBuildInfo_t :: struct {
 	status:      BuildStatus,
-	logs:        []cstring,
+	logs:        string,
 	binary_type: ProgramBinaryType,
 }
 

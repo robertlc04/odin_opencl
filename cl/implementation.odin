@@ -717,7 +717,7 @@ load_1_2 :: proc(set_proc_address: Set_Proc_Address_Type) {
 impl_CreateCommandQueueWithProperties: proc "c" (
 	cl_context: Context,
 	device: DeviceId,
-	#by_ptr properties: u64,
+	properties: [^]u64,
 	errcode_ret: ^i32,
 ) -> CommandQueue
 

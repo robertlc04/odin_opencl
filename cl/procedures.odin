@@ -8,6 +8,8 @@ import "core:mem"
 import "core:os"
 import "core:path/filepath"
 import "core:reflect"
+import "core:strings"
+import "core:sys/info"
 
 // Just one mode: Use directly the wrapper functions without abstractions layers for the user (easy too but a little repetitive)
 
@@ -33,11 +35,11 @@ get_available_platforms :: proc() -> (result: []Platform_t, err: ErrorCodes) {
 	for &platform, i in result {
 		platform.id = platforms[i]
 
-		get_platform_field(&platform, .PLATFORM_NAME, "name", cstring) or_return
-		get_platform_field(&platform, .PLATFORM_PROFILE, "profile", cstring) or_return
-		get_platform_field(&platform, .PLATFORM_VENDOR, "vendor", cstring) or_return
-		get_platform_field(&platform, .PLATFORM_VERSION, "version", cstring) or_return
-		get_platform_field(&platform, .PLATFORM_EXTENSIONS, "extensions", cstring) or_return
+		get_platform_field(&platform, .NAME, "name", []u8) or_return
+		get_platform_field(&platform, .PROFILE, "profile", []u8) or_return
+		get_platform_field(&platform, .VENDOR, "vendor", []u8) or_return
+		get_platform_field(&platform, .VERSION, "version", []u8) or_return
+		get_platform_field(&platform, .EXTENSIONS, "extensions", []u8) or_return
 	}
 
 	return result, err
@@ -62,17 +64,18 @@ get_platform_field :: proc(
 		when ODIN_DEBUG do debug_get_informations(platform, err)
 		return
 	}
-	info_raw := make([]u8, numItems, context.temp_allocator)
+	info_raw := make(T, numItems, context.temp_allocator)
 	err = GetPlatformInfo(platform.id, field, u32(numItems), &info_raw[0], &numItems)
 
 	if err != .SUCCESS {
 		when ODIN_DEBUG do debug_get_informations(platform, err)
 		return
-	};test := reflect.struct_field_by_name(PlatformInfo_t, struct_field)
+	}
+	test := reflect.struct_field_by_name(PlatformInfo_t, struct_field)
 
 	field_ptr := rawptr(uintptr(&platform.info) + test.offset)
 
-	(^T)(field_ptr)^ = T(&info_raw[0])
+	(^T)(field_ptr)^ = info_raw[:len(info_raw) - 1]
 	// field_ptr = mem.copy(field_ptr, &info_raw[0], len(info_raw))
 
 	return
@@ -87,15 +90,15 @@ get_available_devices :: proc(
 	err: ErrorCodes,
 ) {
 	numDevices: u32
-	err = GetDeviceIDs(platform.id, .ALL, 0, nil, &numDevices)
+	GetDeviceIDs(platform.id, .ALL, 0, nil, &numDevices) or_return
 
-	if err != .SUCCESS do return nil, err
 	if numDevices == 0 do return nil, .SUCCESS
 
 	devices := make([]DeviceId, numDevices, context.temp_allocator)
-	err = GetDeviceIDs(platform.id, device_type, numDevices, &devices[0], nil)
+	err = GetDeviceIDs(platform.id, device_type, numDevices, raw_data(devices), nil)
 	if err == .DEVICE_NOT_FOUND do return nil, .SUCCESS
 	if err != .SUCCESS do return nil, err
+
 
 	result = make([]Device_t, numDevices, context.allocator)
 
@@ -103,31 +106,19 @@ get_available_devices :: proc(
 	for &device, i in result {
 		device.id = devices[i]
 		// Get the basic Information
-		get_device_basic_field(&device, .DEVICE_NAME, "name", cstring) or_return
-		get_device_basic_field(&device, .DEVICE_PROFILE, "profile", cstring) or_return
-		get_device_basic_field(&device, .DEVICE_VENDOR, "vendor", cstring) or_return
-		get_device_basic_field(&device, .DEVICE_EXTENSIONS, "extensions", cstring) or_return
-		get_device_basic_field(&device, .DEVICE_VERSION, "version", cstring) or_return
-		get_device_basic_field(&device, .DRIVER_VERSION, "driver_version", cstring) or_return
-		get_device_basic_field(&device, .DEVICE_IL_VERSION, "il_version", cstring) or_return
-		// // Advance Information
-
-		// FIXME: There is a problem with the booleans but i don't know what's happening
-		// if err = get_device_single_field(&device, .DEVICE_ENDIAN_LITTLE, "little_endian", bool); err != .SUCCESS do return nil, err
-		// get_device_single_field(&device, .DEVICE_AVAILABLE, "available", b8) or_return
-		get_device_single_field(&device, .DEVICE_PARENT_DEVICE, "parent", DeviceId) or_return
-		get_device_single_field(
-			&device,
-			.DEVICE_SVM_CAPABILITIES,
-			"svm_capabilities",
-			u64,
-		) or_return
-		get_device_single_field(
-			&device,
-			.DEVICE_SINGLE_FP_CONFIG,
-			"single_fp_config",
-			u64,
-		) or_return
+		get_device_basic_field(&device, .NAME, "name", []u8) or_return
+		get_device_basic_field(&device, .PROFILE, "profile", []u8) or_return
+		get_device_basic_field(&device, .VENDOR, "vendor", []u8) or_return
+		get_device_basic_field(&device, .EXTENSIONS, "extensions", []u8) or_return
+		get_device_basic_field(&device, .VERSION, "version", []u8) or_return
+		get_device_basic_field(&device, .DRIVER_VERSION, "driver_version", []u8) or_return
+		get_device_basic_field(&device, .IL_VERSION, "il_version", []u8) or_return
+		// Advance Information
+		get_device_single_field(&device, .ENDIAN_LITTLE, "little_endian", u32) or_return
+		get_device_single_field(&device, .AVAILABLE, "available", u32) or_return
+		get_device_single_field(&device, .PARENT_DEVICE, "parent", DeviceId) or_return
+		get_device_single_field(&device, .SVM_CAPABILITIES, "svm_capabilities", u64) or_return
+		get_device_single_field(&device, .SINGLE_FP_CONFIG, "single_fp_config", u64) or_return
 	}
 
 	return result, err
@@ -162,7 +153,7 @@ get_device_basic_field :: proc(
 		return
 	}
 
-	info_raw := make([]u8, numItems, context.temp_allocator)
+	info_raw := make(T, numItems, context.temp_allocator)
 	err = GetDeviceInfo(device.id, field, u32(numItems), &info_raw[0], &numItems)
 	if err != .SUCCESS {
 		when ODIN_DEBUG do debug_get_informations(device, err)
@@ -173,7 +164,7 @@ get_device_basic_field :: proc(
 
 	field_ptr := rawptr(uintptr(&device.info) + test.offset)
 
-	(^T)(field_ptr)^ = T(&info_raw[0])
+	(^T)(field_ptr)^ = info_raw[:len(info_raw) - 1]
 
 	return
 }
@@ -205,7 +196,7 @@ get_device_single_field :: proc(
 
 	field_ptr := rawptr(uintptr(&device.info) + test.offset)
 
-	(^T)(field_ptr)^ = T(info_raw[0])
+	(^T)(field_ptr)^ = info_raw[0]
 
 	return
 }
@@ -283,7 +274,7 @@ get_context_single_field :: proc(
 
 	field_ptr := rawptr(uintptr(&ctx.info) + test.offset)
 
-	(^T)(field_ptr)^ = T(info_raw[0])
+	(^T)(field_ptr)^ = info_raw[0]
 
 	return
 }
@@ -318,7 +309,7 @@ get_command_queue_single_field :: proc(
 
 	field_ptr := rawptr(uintptr(&cmd_queue.info) + test.offset)
 
-	(^T)(field_ptr)^ = T(info_raw[0])
+	(^T)(field_ptr)^ = info_raw[0]
 
 	return
 }
@@ -333,14 +324,16 @@ get_command_queue_list_field :: proc(
 	err: ErrorCodes,
 ) {
 	numItems: uint
+	// FIXME: Problems with empty properties
 	err = GetCommandQueueInfo(cmd_queue.id, field, 0, nil, &numItems)
 	if err != .SUCCESS {
 		when ODIN_DEBUG do debug_get_informations(cmd_queue, err)
 		return
 	}
 	if numItems == 0 do return
+	log.debugf("Number of items: %d", numItems)
 
-	info_raw := make([]T, numItems, context.temp_allocator)
+	info_raw := make(T, numItems, context.temp_allocator)
 	err = GetCommandQueueInfo(cmd_queue.id, field, numItems, &info_raw[0], nil)
 	if err != .SUCCESS {
 		when ODIN_DEBUG do debug_get_informations(cmd_queue, err)
@@ -351,11 +344,7 @@ get_command_queue_list_field :: proc(
 
 	field_ptr := rawptr(uintptr(&cmd_queue.info) + test.offset)
 
-	// (^T)(field_ptr) = T(&info_raw[0])
-	field_ptr = mem.copy(field_ptr, &info_raw[0], len(info_raw))
-
-	log.debugf("Value info: %v", info_raw)
-	log.debugf("Value info: %v", (^T)(field_ptr)^)
+	(^T)(field_ptr)^ = info_raw
 
 	return
 }
@@ -400,9 +389,9 @@ get_command_queue :: proc(
 		// TODO: Fix Properties get
 		get_command_queue_list_field(
 			&cmd_queue,
-			.QUEUE_PROPERTIES,
+			.QUEUE_PROPERTIES_ARRAY,
 			"properties",
-			CommandQueueInfo,
+			[]CommandQueueInfo,
 		) or_return
 
 	}
@@ -437,24 +426,202 @@ destroy_command_queue :: proc(cmd_queue: []CommandQueue_t) {
 // For now only full path
 get_program :: proc(
 	ctx: Context_t,
+	dev: Device_t,
 	program: ^Program_t,
-	file_path: string,
-	il_data: []u8,
+	file_path: string = "",
+	il_data: []u8 = {},
 ) -> (
 	err: ErrorCodes,
 ) {
+
 	if len(il_data) != 0 {
 		program.id = CreateProgramWithIL(ctx.id, il_data, &err)
-	} else {
-		if filepath.is_abs(file_path) {
-			raw, ok := os.read_entire_file_from_filename(file_path)
-			source := transmute([]cstring)raw
 
-			if ok do program.id = CreateProgramWithSource(ctx.id, 1, source, &err)
+		if err != .SUCCESS {
+			when ODIN_DEBUG do debug_get_informations(program, err)
+			check(err)
+
 		}
+	} else {
+		raw, ok := os.read_entire_file_from_filename(file_path, context.temp_allocator)
+		source := strings.clone_to_cstring(transmute(string)raw, context.temp_allocator)
+
+		if ok do program.id = CreateProgramWithSource(ctx.id, 1, {source}, &err)
 	}
 
 
+	if program.id == nil {
+		err = .INVALID_KERNEL
+		return
+	}
+
+
+	// Build
+	BuildProgram(program.id, 1, {dev.id}, "", nil, nil) or_return
+
+	// Info
+	get_program_info_single_field(program, .CONTEXT, "ctx", Context) or_return
+	get_program_build_info_single_field(program, dev, .STATUS, "status", BuildStatus)
+
+	get_program_info_list_field(program, .DEVICES, "devs", []DeviceId) or_return
+	// FIXME: Bug on the kernels_name who it's overflowing for the next value "status"
+	get_program_info_list_field(program, .KERNEL_NAMES, "kernels_name", []u8) or_return
+	get_program_build_info_field(program, dev, .LOG, "logs", []u8)
+
 	return
 }
+
+
+destroy_program :: proc(programs: []Program_t) {
+	err: ErrorCodes
+	for program in programs {
+		if err = ReleaseProgram(program.id); err != .SUCCESS {
+			when ODIN_DEBUG do debug_get_informations(program, err)
+			check(err)
+		}
+	}
+	// delete(programs)
+}
+
+
+get_program_info_single_field :: proc(
+	program: ^Program_t,
+	field: ProgramInfo,
+	struct_field: string,
+	$T: typeid,
+) -> (
+	err: ErrorCodes,
+) {
+	numItems: uint
+	err = GetProgramInfo(program.id, field, 0, nil, &numItems)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+
+	info_raw := make([]T, numItems, context.temp_allocator)
+	err = GetProgramInfo(program.id, field, numItems, &info_raw[0], &numItems)
+
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+
+	test := reflect.struct_field_by_name(ProgramInfo_t, struct_field)
+
+	field_ptr := rawptr(uintptr(&program.info) + test.offset)
+
+	(^T)(field_ptr)^ = info_raw[0]
+
+	return
+}
+
+
+get_program_info_list_field :: proc(
+	program: ^Program_t,
+	field: ProgramInfo,
+	struct_field: string,
+	$T: typeid,
+) -> (
+	err: ErrorCodes,
+) {
+
+	numItems: uint
+	err = GetProgramInfo(program.id, field, 0, nil, &numItems)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+	info_raw := make(T, numItems, context.temp_allocator)
+	err = GetProgramInfo(program.id, field, numItems, &info_raw[0], &numItems)
+
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+
+	test := reflect.struct_field_by_name(ProgramInfo_t, struct_field)
+
+	field_ptr := rawptr(uintptr(&program.info) + test.offset)
+
+	(^T)(field_ptr)^ = info_raw
+
+	return
+}
+
+get_program_build_info_single_field :: proc(
+	program: ^Program_t,
+	dev: Device_t,
+	field: ProgramBuildInfo,
+	struct_field: string,
+	$T: typeid,
+) -> (
+	err: ErrorCodes,
+) {
+
+	numItems: uint
+	err = GetProgramBuildInfo(program.id, dev.id, field, 0, nil, &numItems)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+
+
+	info_raw := make([]T, numItems, context.temp_allocator)
+	err = GetProgramBuildInfo(program.id, dev.id, field, numItems, &info_raw[0], &numItems)
+
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+
+	test := reflect.struct_field_by_name(ProgramBuildInfo_t, struct_field)
+
+	field_ptr := rawptr(uintptr(&program.build_info) + test.offset)
+
+	log.debugf("NumItems: %d", numItems)
+	log.debugf("Value: %v", info_raw)
+	(^T)(field_ptr)^ = info_raw[0]
+
+	return
+}
+
+@(private)
+get_program_build_info_field :: proc(
+	program: ^Program_t,
+	dev: Device_t,
+	field: ProgramBuildInfo,
+	struct_field: string,
+	$T: typeid,
+) -> (
+	err: ErrorCodes,
+) {
+	numItems: uint
+	err = GetProgramBuildInfo(program.id, dev.id, field, 0, nil, &numItems)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+
+
+	info_raw := make(T, numItems, context.temp_allocator)
+	err = GetProgramBuildInfo(program.id, dev.id, field, numItems, &info_raw[0], &numItems)
+
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+
+	test := reflect.struct_field_by_name(ProgramBuildInfo_t, struct_field)
+
+	field_ptr := rawptr(uintptr(&program.build_info) + test.offset)
+
+	(^T)(field_ptr)^ = info_raw[:len(info_raw) - 1]
+	// field_ptr = mem.copy(field_ptr, &info_raw[0], len(info_raw))
+
+	return
+}
+
+// TODO: Finish Program Procedure and Make Kernel Procedure 
+// TODO: Make in the Readme a explain of how use the callback procedures
 

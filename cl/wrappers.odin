@@ -274,14 +274,21 @@ ReleaseProgram :: #force_inline proc "c" (program: Program) -> ErrorCodes {
 BuildProgram :: #force_inline proc "c" (
 	program: Program,
 	num_devices: u32,
-	device_list: [^]DeviceId,
+	device_list: []DeviceId,
 	options: cstring,
 	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 ) -> ErrorCodes {
 	if impl_BuildProgram == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
 	return ErrorCodes(
-		impl_BuildProgram(program, num_devices, device_list, options, pfn_notify, user_data),
+		impl_BuildProgram(
+			program,
+			num_devices,
+			raw_data(device_list),
+			options,
+			pfn_notify,
+			user_data,
+		),
 	)
 }
 
@@ -1250,6 +1257,7 @@ CreateCommandQueueWithProperties :: #force_inline proc "c" (
 
 	detected_prop: bool = false
 	detected_size: bool = false
+	count: u32 = 0
 
 	for prop in properties {
 		if prop.key == .QUEUE_PROPERTIES && !detected_prop {
@@ -1272,10 +1280,11 @@ CreateCommandQueueWithProperties :: #force_inline proc "c" (
 		if prop.key == .QUEUE_SIZE && detected_size {
 			val[3] |= u64(prop.value)
 		}
+		count += 1
 	}
 
-	// FIXME: Make a helper for transmute from []CommandQueueProperties_t to ^u64
-	cmd = impl_CreateCommandQueueWithProperties(cl_context, device, val[0], &errcode)
+	cmd =
+		impl_CreateCommandQueueWithProperties(cl_context, device, raw_data(val[:]), &errcode) if count > 0 else impl_CreateCommandQueueWithProperties(cl_context, device, nil, &errcode)
 	errcode_ret^ = ErrorCodes(errcode)
 	return
 }
