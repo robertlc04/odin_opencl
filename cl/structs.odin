@@ -64,12 +64,12 @@ Program_t :: struct {
 	id:         Program,
 	info:       ProgramInfo_t,
 	build_info: ProgramBuildInfo_t,
+	kernels:    []Kernel_t,
 }
 
 ProgramInfo_t :: struct {
-	ctx:          Context,
-	devs:         []DeviceId,
-	kernels_name: cstring,
+	ctx:  Context,
+	devs: []DeviceId,
 }
 
 ProgramBuildInfo_t :: struct {
@@ -79,8 +79,20 @@ ProgramBuildInfo_t :: struct {
 }
 
 
-Kernel_t :: struct {}
-KernelInfo_t :: struct {}
+Kernel_t :: struct {
+	id:   Kernel,
+	args: []KernelArgsInfo_t,
+	info: KernelInfo_t,
+}
+KernelInfo_t :: struct {
+	name:      string,
+	ref_count: u32, // Ref: https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clGetKernelInfo.html#_footnotedef_1
+}
+KernelArgsInfo_t :: struct {
+	type:      string,
+	name:      string,
+	qualifier: KernelArgAddressQualifier,
+}
 
 Buffer_t :: struct {}
 BufferInfo_t :: struct {}

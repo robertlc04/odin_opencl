@@ -273,18 +273,18 @@ ReleaseProgram :: #force_inline proc "c" (program: Program) -> ErrorCodes {
 }
 BuildProgram :: #force_inline proc "c" (
 	program: Program,
-	num_devices: u32,
 	device_list: []DeviceId,
 	options: cstring,
 	pfn_notify: ProgramCallback,
 	user_data: rawptr,
 ) -> ErrorCodes {
 	if impl_BuildProgram == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
+	device_ptr := raw_data(device_list) if len(device_list) > 0 else nil
 	return ErrorCodes(
 		impl_BuildProgram(
 			program,
-			num_devices,
-			raw_data(device_list),
+			u32(len(device_list)),
+			device_ptr,
 			options,
 			pfn_notify,
 			user_data,
@@ -321,7 +321,7 @@ CreateKernelsInProgram :: #force_inline proc "c" (
 
 GetKernelInfo :: #force_inline proc "c" (
 	kernel: Kernel,
-	param_name: KernelArgInfo,
+	param_name: KernelInfo,
 	param_value_size: uint,
 	param_value: rawptr,
 	param_value_size_ret: ^uint,

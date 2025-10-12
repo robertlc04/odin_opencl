@@ -331,7 +331,6 @@ get_command_queue_list_field :: proc(
 		return
 	}
 	if numItems == 0 do return
-	log.debugf("Number of items: %d", numItems)
 
 	info_raw := make(T, numItems, context.temp_allocator)
 	err = GetCommandQueueInfo(cmd_queue.id, field, numItems, &info_raw[0], nil)
@@ -457,16 +456,19 @@ get_program :: proc(
 
 
 	// Build
-	BuildProgram(program.id, 1, {dev.id}, "", nil, nil) or_return
+	BuildProgram(program.id, {dev.id}, "", nil, nil) or_return
 
 	// Info
 	get_program_info_single_field(program, .CONTEXT, "ctx", Context) or_return
-	get_program_build_info_single_field(program, dev, .STATUS, "status", BuildStatus)
 
 	get_program_info_list_field(program, .DEVICES, "devs", []DeviceId) or_return
 	// FIXME: Bug on the kernels_name who it's overflowing for the next value "status"
-	get_program_info_list_field(program, .KERNEL_NAMES, "kernels_name", []u8) or_return
+	// CAUTION: Weird bug sometimes from the API way i don't know
 	get_program_build_info_field(program, dev, .LOG, "logs", []u8)
+	get_program_build_info_single_field(program, dev, .STATUS, "status", BuildStatus)
+
+	// PostProcessing logs if they have
+	get_kernels(program)
 
 	return
 }
@@ -474,7 +476,15 @@ get_program :: proc(
 
 destroy_program :: proc(programs: []Program_t) {
 	err: ErrorCodes
+
 	for program in programs {
+		// Release Kernels
+		for kernel in program.kernels {
+			if err = ReleaseKernel(kernel.id); err != .SUCCESS {
+				when ODIN_DEBUG do debug_get_informations(program, err)
+				check(err)
+			}
+		}
 		if err = ReleaseProgram(program.id); err != .SUCCESS {
 			when ODIN_DEBUG do debug_get_informations(program, err)
 			check(err)
@@ -482,7 +492,6 @@ destroy_program :: proc(programs: []Program_t) {
 	}
 	// delete(programs)
 }
-
 
 get_program_info_single_field :: proc(
 	program: ^Program_t,
@@ -579,8 +588,6 @@ get_program_build_info_single_field :: proc(
 
 	field_ptr := rawptr(uintptr(&program.build_info) + test.offset)
 
-	log.debugf("NumItems: %d", numItems)
-	log.debugf("Value: %v", info_raw)
 	(^T)(field_ptr)^ = info_raw[0]
 
 	return
@@ -619,6 +626,187 @@ get_program_build_info_field :: proc(
 	(^T)(field_ptr)^ = info_raw[:len(info_raw) - 1]
 	// field_ptr = mem.copy(field_ptr, &info_raw[0], len(info_raw))
 
+	return
+}
+
+get_kernels :: proc(program: ^Program_t) -> (err: ErrorCodes) {
+
+	kernelItems: u32
+	err = CreateKernelsInProgram(program.id, 0, nil, &kernelItems)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+
+	kernel := make([]Kernel, kernelItems, context.temp_allocator)
+	err = CreateKernelsInProgram(program.id, kernelItems, raw_data(kernel), nil)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(program, err)
+		return
+	}
+
+	program.kernels = make([]Kernel_t, kernelItems, context.temp_allocator)
+
+
+	for &kernel_val, i in program.kernels {
+		kernel_val.id = kernel[i]
+		get_kernel_info_single_field(&kernel_val, .REFERENCE_COUNT, "ref_count", u32) or_return
+		get_kernel_info_list_field(&kernel_val, .FUNCTION_NAME, "name", []u8)
+		get_kernel_args(&kernel_val) or_return
+	}
+
+
+	return
+}
+
+
+get_kernel_info_single_field :: proc(
+	kernel: ^Kernel_t,
+	field: KernelInfo,
+	struct_field: string,
+	$T: typeid,
+) -> (
+	err: ErrorCodes,
+) {
+
+	numItems: uint
+	err = GetKernelInfo(kernel.id, field, 0, nil, &numItems)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+
+
+	info_raw := make([]T, numItems, context.temp_allocator)
+	err = GetKernelInfo(kernel.id, field, numItems, &info_raw[0], &numItems)
+
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+
+	test := reflect.struct_field_by_name(KernelInfo_t, struct_field)
+
+	field_ptr := rawptr(uintptr(&kernel.info) + test.offset)
+
+	(^T)(field_ptr)^ = info_raw[0]
+
+	return
+}
+
+
+get_kernel_info_list_field :: proc(
+	kernel: ^Kernel_t,
+	field: KernelInfo,
+	struct_field: string,
+	$T: typeid,
+) -> (
+	err: ErrorCodes,
+) {
+
+	numItems: uint
+	err = GetKernelInfo(kernel.id, field, 0, nil, &numItems)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+	info_raw := make(T, numItems, context.temp_allocator)
+	err = GetKernelInfo(kernel.id, field, numItems, &info_raw[0], &numItems)
+
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+
+	test := reflect.struct_field_by_name(KernelInfo_t, struct_field)
+
+	field_ptr := rawptr(uintptr(&kernel.info) + test.offset)
+
+	(^T)(field_ptr)^ = info_raw[:len(info_raw) - 1]
+
+	return
+}
+
+get_kernel_args :: proc(kernel: ^Kernel_t) -> (err: ErrorCodes) {
+	numArgs: uint
+	err = GetKernelInfo(kernel.id, .NUM_ARGS, 0, nil, &numArgs)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+
+	args := make([]u32, numArgs, context.temp_allocator)
+
+	err = GetKernelInfo(kernel.id, .NUM_ARGS, numArgs, &args[0], nil)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+
+
+	kernel.args = make([]KernelArgsInfo_t, args[0], context.temp_allocator)
+
+	for &args, i in kernel.args {
+		args.type, err = get_kernel_arg_value(kernel^, u32(i), .TYPE_NAME)
+		if err != .SUCCESS do return
+		args.name, err = get_kernel_arg_value(kernel^, u32(i), .NAME)
+		if err != .SUCCESS do return
+		get_kernel_arg_qualifier(kernel, u32(i), .ACCESS_QUALIFIER) or_return
+	}
+
+
+	return
+}
+
+get_kernel_arg_value :: proc(
+	kernel: Kernel_t,
+	index: u32,
+	field: KernelArgInfo,
+) -> (
+	data: string,
+	err: ErrorCodes,
+) {
+	numValues: uint
+	err = GetKernelArgInfo(kernel.id, index, field, 0, nil, &numValues)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+	value := make([]u8, numValues, context.temp_allocator)
+	err = GetKernelArgInfo(kernel.id, index, field, numValues, &value[0], nil)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+
+	data = transmute(string)value[:len(value) - 1]
+	return
+}
+
+// TODO: Make a general procedure like for the others
+get_kernel_arg_qualifier :: proc(
+	kernel: ^Kernel_t,
+	index: u32,
+	field: KernelArgInfo,
+) -> (
+	err: ErrorCodes,
+) {
+
+	numValues: uint
+	err = GetKernelArgInfo(kernel.id, index, field, 0, nil, &numValues)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+	value := make([]KernelArgAddressQualifier, numValues, context.temp_allocator)
+	err = GetKernelArgInfo(kernel.id, index, field, numValues, &value[0], nil)
+	if err != .SUCCESS {
+		when ODIN_DEBUG do debug_get_informations(kernel, err)
+		return
+	}
+
+	// FIX LATER: this it's a temporal hack for working :D
+	kernel.args[index].qualifier = KernelArgAddressQualifier(u32(value[0]) - 8) // Hack cause im getting bad things :C
 	return
 }
 

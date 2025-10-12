@@ -241,7 +241,7 @@ impl_CreateKernelsInProgram: proc "c" (
 
 impl_GetKernelInfo: proc "c" (
 	kernel: Kernel,
-	param_name: KernelArgInfo,
+	param_name: KernelInfo,
 	param_value_size: uint,
 	param_value: rawptr,
 	param_value_size_ret: ^uint,
