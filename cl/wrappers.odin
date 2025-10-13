@@ -377,7 +377,7 @@ ReleaseKernel :: #force_inline proc "c" (kernel: Kernel) -> ErrorCodes {
 
 CreateBuffer :: #force_inline proc "c" (
 	cl_context: Context,
-	flags: MemFlags,
+	flags: []MemFlags,
 	size: uint,
 	host_ptr: rawptr,
 	errcode_ret: ^ErrorCodes,
@@ -389,7 +389,12 @@ CreateBuffer :: #force_inline proc "c" (
 		errcode_ret^ = ErrorCodes.PROCEDURE_NOT_LINKED
 	}
 	errcode: i32
-	mem = impl_CreateBuffer(cl_context, flags, size, host_ptr, &errcode)
+	flag: u64 = 0
+	for f in flags {
+		flag |= u64(f)
+	}
+
+	mem = impl_CreateBuffer(cl_context, flag, size, host_ptr, &errcode)
 	errcode_ret^ = ErrorCodes(errcode)
 	return
 

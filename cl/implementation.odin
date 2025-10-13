@@ -267,7 +267,7 @@ impl_ReleaseKernel: proc "c" (kernel: Kernel) -> i32
 
 impl_CreateBuffer: proc "c" (
 	cl_context: Context,
-	flags: MemFlags,
+	flags: u64,
 	size: uint,
 	host_ptr: rawptr,
 	errcode_ret: ^i32,

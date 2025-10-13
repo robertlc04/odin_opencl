@@ -81,7 +81,7 @@ main :: proc() {
 		return
 	}
 
-	cl.check(cl.BuildProgram(program, 1, {device}, "", nil, nil))
+	cl.check(cl.BuildProgram(program, {device}, "", nil, nil))
 
 	kernel: cl.Kernel
 	kernel = cl.CreateKernel(program, "vector_add", &error)
@@ -100,7 +100,7 @@ main :: proc() {
 
 	buffer_a: cl.Memory = cl.CreateBuffer(
 		ocl_context,
-		.MEM_READ_ONLY | .MEM_COPY_HOST_PTR,
+		{.MEM_READ_ONLY, .MEM_COPY_HOST_PTR},
 		size_of(i32) * len(a_arr),
 		&a_arr[0],
 		&error,
@@ -109,7 +109,7 @@ main :: proc() {
 
 	buffer_b: cl.Memory = cl.CreateBuffer(
 		ocl_context,
-		.MEM_READ_ONLY | .MEM_COPY_HOST_PTR,
+		{.MEM_READ_ONLY, .MEM_COPY_HOST_PTR},
 		size_of(i32) * len(b_arr),
 		&b_arr[0],
 		&error,
@@ -118,7 +118,7 @@ main :: proc() {
 
 	buffer_c: cl.Memory = cl.CreateBuffer(
 		ocl_context,
-		.MEM_WRITE_ONLY | .MEM_USE_HOST_PTR,
+		{.MEM_WRITE_ONLY, .MEM_USE_HOST_PTR},
 		size_of(i32) * len(c_arr),
 		&c_arr[0],
 		&error,

@@ -43,12 +43,12 @@ main :: proc() {
 
 	for platform, i in platforms {
 		if len(device) != 0 do break
-		device, err = cl.get_available_devices(platform, .GPU)
+		device, err = cl.get_available_devices(platform, .CPU)
 		cl.check(err)
 	}
 	defer cl.destroy_devices(device)
 
-	err = cl.get_context(&ctx, device, device_t = cl.DeviceType.GPU)
+	err = cl.get_context(&ctx, device, device_t = cl.DeviceType.CPU)
 	cl.check(err)
 	defer cl.destroy_context(ctx)
 	cmd: []cl.CommandQueue_t
@@ -61,10 +61,11 @@ main :: proc() {
 	defer cl.destroy_program({program})
 
 
-	log.debugf("Platform Data: %v\n", platforms)
-	log.debugf("Device data: %v\n", device)
-	log.debugf("Context Data: %v\n", ctx)
-	log.debugf("CommandQueue Data: %v\n", cmd)
+	// log.debugf("Platform Data: %v\n", platforms)
+	// log.debugf("Device data: %v\n", device)
+	// log.debugf("Context Data: %v\n", ctx)
+	// log.debugf("CommandQueue Data: %v\n", cmd)
 	log.debugf("Program Data: %v\n", program)
+	log.debugf("Program Build Logs: %s\n", program.build_info.logs)
 }
 

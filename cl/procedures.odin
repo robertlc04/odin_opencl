@@ -810,6 +810,62 @@ get_kernel_arg_qualifier :: proc(
 	return
 }
 
+// For now no properties available and no host_ptr gone be available :D
+// The T it's the type of the buffer must match the type of the kernel
+get_buffer :: proc(
+	ctx: Context_t,
+	flags: []MemFlags,
+	size: uint,
+	$T: typeid,
+) -> (
+	buffer: Buffer_t,
+	err: ErrorCodes,
+) {
+	if ctx.id == nil do return .INVALID_CONTEXT
+
+	buffer.flags = flags
+	buffer.id = CreateBuffer(ctx.id, flags, size_of(T) * size, nil, &err)
+	if err != .SUCCESS do return err
+	buffer.size = size_of(T) * size
+	buffer.type = T
+	return
+}
+
+// No event supported for now
+read_buffer :: proc(
+	cmd: CommandQueue_t,
+	buffer: Buffer_t,
+	blocking_read: bool,
+	offset: uint,
+	size: uint,
+	$T: typeid,
+) -> (
+	data: []T,
+	err: ErrorCodes,
+) {
+	if buffer.type != T do return nil, .CL_INVALID_VALUE
+	if buffer.size < size do return nil, .CL_INVALID_VALUE
+
+	data = make([]T, size, context.temp_allocator)
+	err = EnqueueReadBuffer(
+		cmd.id,
+		buffer.id,
+		blocking_read,
+		offset,
+		size * size_of(T),
+		raw_data(data),
+		0,
+		nil,
+		nil,
+	)
+
+	if err != .SUCCESS do return nil, err
+
+	return
+}
+
 // TODO: Finish Program Procedure and Make Kernel Procedure 
 // TODO: Make in the Readme a explain of how use the callback procedures
+// TODO: Make event support and make a example using it
+// TODO: Better error explain on the future -> Every procedure have it's one cause of errors. NOTE: this shit gone be painful for write :"D
 

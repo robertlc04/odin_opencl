@@ -94,8 +94,12 @@ KernelArgsInfo_t :: struct {
 	qualifier: KernelArgAddressQualifier,
 }
 
-Buffer_t :: struct {}
-BufferInfo_t :: struct {}
+Buffer_t :: struct {
+	id:    Memory,
+	flags: []MemFlags,
+	size:  uint,
+	type:  typeid,
+}
 
 Event_t :: struct {}
 EventInfo_t :: struct {}
