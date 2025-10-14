@@ -125,25 +125,20 @@ main :: proc() {
 	)
 	cl.check(error)
 
-	cl.SetKernelArg(kernel, 0, size_of(cl.Memory), &buffer_a)
-	cl.SetKernelArg(kernel, 1, size_of(cl.Memory), &buffer_b)
-	cl.SetKernelArg(kernel, 2, size_of(cl.Memory), &buffer_c)
+	buffers: []cl.Memory = {buffer_a, buffer_b, buffer_c}
+
+	for &buf, i in buffers {
+		cl.SetKernelArg(kernel, u32(i), type_of(buf), &buf)
+	}
+
+	// cl.SetKernelArg(kernel, 1, cl.Memory, {buffer_b})
+	// cl.SetKernelArg(kernel, 2, cl.Memory, {buffer_c})
 
 	global_size: uint = ARRAYS_SIZE
-	cl.check(cl.EnqueueNDRangeKernel(cmd_queue, kernel, 1, nil, &global_size, nil, 0, nil, nil))
+	cl.check(cl.EnqueueNDRangeKernel(cmd_queue, kernel, 1, nil, {ARRAYS_SIZE}, nil, nil, nil))
 	cl.check(cl.Finish(cmd_queue))
 
-	cl.EnqueueReadBuffer(
-		cmd_queue,
-		buffer_c,
-		true,
-		0,
-		size_of(i32) * ARRAYS_SIZE,
-		&c_arr[0],
-		0,
-		nil,
-		nil,
-	)
+	cl.EnqueueReadBuffer(cmd_queue, buffer_c, true, 0, i32, c_arr[:])
 
 	for value in c_arr {
 		log.debugf("Value Calculated: %d", value)

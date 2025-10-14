@@ -60,12 +60,20 @@ main :: proc() {
 	cl.check(err)
 	defer cl.destroy_program({program})
 
+	buf_a: cl.Buffer_t
+	buf_a, err = cl.get_buffer(ctx, {}, 10, f32)
+	cl.check(err)
+	defer cl.destroy_buffer(buf_a)
+
+	data: []f32 = {1.432, 23.12, 921.23145, 1293.1234}
+
+	cl.write_buffer(cmd[0], buf_a, f32, data)
 
 	// log.debugf("Platform Data: %v\n", platforms)
 	// log.debugf("Device data: %v\n", device)
 	// log.debugf("Context Data: %v\n", ctx)
 	// log.debugf("CommandQueue Data: %v\n", cmd)
-	log.debugf("Program Data: %v\n", program)
-	log.debugf("Program Build Logs: %s\n", program.build_info.logs)
+	// log.debugf("Program Data: %v\n", program)
+	// log.debugf("Program Build Logs: %s\n", program.build_info.logs)
 }
 

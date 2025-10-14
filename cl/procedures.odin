@@ -821,13 +821,19 @@ get_buffer :: proc(
 	buffer: Buffer_t,
 	err: ErrorCodes,
 ) {
-	if ctx.id == nil do return .INVALID_CONTEXT
+	if ctx.id == nil do return {}, .INVALID_CONTEXT
 
 	buffer.flags = flags
 	buffer.id = CreateBuffer(ctx.id, flags, size_of(T) * size, nil, &err)
-	if err != .SUCCESS do return err
+	if err != .SUCCESS do return {}, err
 	buffer.size = size_of(T) * size
 	buffer.type = T
+	return
+}
+
+destroy_buffer :: proc(buffer: Buffer_t) -> (err: ErrorCodes) {
+	if buffer.id == nil do return .INVALID_VALUE
+	err = ReleaseMemObject(buffer.id)
 	return
 }
 
@@ -843,27 +849,32 @@ read_buffer :: proc(
 	data: []T,
 	err: ErrorCodes,
 ) {
-	if buffer.type != T do return nil, .CL_INVALID_VALUE
-	if buffer.size < size do return nil, .CL_INVALID_VALUE
-
 	data = make([]T, size, context.temp_allocator)
-	err = EnqueueReadBuffer(
-		cmd.id,
-		buffer.id,
-		blocking_read,
-		offset,
-		size * size_of(T),
-		raw_data(data),
-		0,
-		nil,
-		nil,
-	)
-
+	err = EnqueueReadBuffer(cmd.id, buffer.id, blocking_read, offset, T, data)
 	if err != .SUCCESS do return nil, err
 
 	return
 }
 
+
+write_buffer :: proc(
+	cmd: CommandQueue_t,
+	buffer: Buffer_t,
+	$T: typeid,
+	data: []T,
+	blocking_write: bool = true,
+	offset: uint = 0,
+) -> (
+	err: ErrorCodes,
+) {
+
+	err = EnqueueWriteBuffer(cmd.id, buffer.id, blocking_write, offset, T, data)
+
+	return
+}
+
+// TODO: Make SetArgKernel more friendly for usage or make a procedure how take arg: any and create a KernelArg_t.
+//      NOTE: The type getted can be used as a token for make a type checker for the user
 // TODO: Finish Program Procedure and Make Kernel Procedure 
 // TODO: Make in the Readme a explain of how use the callback procedures
 // TODO: Make event support and make a example using it

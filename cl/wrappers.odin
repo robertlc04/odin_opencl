@@ -340,11 +340,11 @@ GetKernelInfo :: #force_inline proc "c" (
 SetKernelArg :: #force_inline proc "c" (
 	kernel: Kernel,
 	arg_index: u32,
-	arg_size: uint,
-	arg_value: rawptr,
+	$T: typeid,
+	arg_value: ^T,
 ) -> ErrorCodes {
 	if impl_SetKernelArg == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
-	return ErrorCodes(impl_SetKernelArg(kernel, arg_index, arg_size, arg_value))
+	return ErrorCodes(impl_SetKernelArg(kernel, arg_index, size_of(T), arg_value))
 }
 
 GetKernelWorkGroupInfo :: #force_inline proc "c" (
@@ -589,12 +589,11 @@ EnqueueNDRangeKernel :: #force_inline proc "c" (
 	command_queue: CommandQueue,
 	kernel: Kernel,
 	work_dim: u32,
-	global_work_offset: ^uint,
-	global_work_size: ^uint,
-	local_work_size: ^uint,
-	num_events_in_wait_list: u32,
-	event_wait_list: [^]Event,
-	event: ^Event,
+	global_work_offset: []uint,
+	global_work_size: []uint,
+	local_work_size: []uint,
+	event_wait_list: []Event = {},
+	event: ^Event = nil,
 ) -> ErrorCodes {
 	if impl_EnqueueNDRangeKernel == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
 	return ErrorCodes(
@@ -602,16 +601,17 @@ EnqueueNDRangeKernel :: #force_inline proc "c" (
 			command_queue,
 			kernel,
 			work_dim,
-			global_work_offset,
-			global_work_size,
-			local_work_size,
-			num_events_in_wait_list,
-			event_wait_list,
+			raw_data(global_work_offset),
+			raw_data(global_work_size),
+			raw_data(local_work_size),
+			u32(len(event_wait_list)),
+			raw_data(event_wait_list),
 			event,
 		),
 	)
 }
 
+// DO NOT USE THIS FOR NOW
 EnqueueNativeKernel :: #force_inline proc "c" (
 	command_queue: CommandQueue,
 	user_func: ^proc(),
@@ -646,11 +646,10 @@ EnqueueReadBuffer :: #force_inline proc "c" (
 	buffer: Memory,
 	blocking_read: bool,
 	offset: uint,
-	size: uint,
-	ptr: rawptr,
-	num_events_in_wait_list: u32,
-	event_wait_list: [^]Event,
-	event: ^Event,
+	$T: typeid,
+	data: []T,
+	event_wait_list: []Event = {},
+	event: ^Event = nil,
 ) -> ErrorCodes {
 	if impl_EnqueueReadBuffer == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
 	return ErrorCodes(
@@ -659,10 +658,10 @@ EnqueueReadBuffer :: #force_inline proc "c" (
 			buffer,
 			b8(blocking_read),
 			offset,
-			size,
-			ptr,
-			num_events_in_wait_list,
-			event_wait_list,
+			len(data) * size_of(T),
+			&data[0],
+			u32(len(event_wait_list)),
+			raw_data(event_wait_list),
 			event,
 		),
 	)
@@ -673,11 +672,10 @@ EnqueueWriteBuffer :: #force_inline proc "c" (
 	buffer: Memory,
 	blocking_write: bool,
 	offset: uint,
-	size: uint,
-	ptr: rawptr,
-	num_events_in_wait_list: u32,
-	event_wait_list: [^]Event,
-	event: ^Event,
+	$T: typeid,
+	data: []T,
+	event_wait_list: []Event = {},
+	event: ^Event = nil,
 ) -> ErrorCodes {
 	if impl_EnqueueWriteBuffer == nil do return ErrorCodes.PROCEDURE_NOT_LINKED
 	return ErrorCodes(
@@ -686,10 +684,10 @@ EnqueueWriteBuffer :: #force_inline proc "c" (
 			buffer,
 			b8(blocking_write),
 			offset,
-			size,
-			ptr,
-			num_events_in_wait_list,
-			event_wait_list,
+			len(data) * size_of(T),
+			&data[0],
+			u32(len(event_wait_list)),
+			raw_data(event_wait_list),
 			event,
 		),
 	)

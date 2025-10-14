@@ -99,42 +99,22 @@ run :: proc() {
 	local: []uint = {32, 8}
 	scale: f32 = 20.0
 
-	cl.check(cl.SetKernelArg(g.kernel, 0, size_of(cl.Memory), &g.result_buf))
-	cl.check(cl.SetKernelArg(g.kernel, 1, size_of(i32), &global[0]))
-	cl.check(cl.SetKernelArg(g.kernel, 2, size_of(i32), &global[1]))
-	cl.check(cl.SetKernelArg(g.kernel, 3, size_of(f32), &scale))
+	width: i32 = 1920
+	height: i32 = 1080
 
 
-	cl.check(
-		cl.EnqueueNDRangeKernel(
-			g.cmd_queue,
-			g.kernel,
-			2,
-			nil,
-			raw_data(global),
-			raw_data(local),
-			0,
-			nil,
-			nil,
-		),
-	)
+	cl.check(cl.SetKernelArg(g.kernel, 0, cl.Memory, &g.result_buf))
+	cl.check(cl.SetKernelArg(g.kernel, 1, i32, &width))
+	cl.check(cl.SetKernelArg(g.kernel, 2, i32, &height))
+	cl.check(cl.SetKernelArg(g.kernel, 3, f32, &scale))
+
+
+	cl.check(cl.EnqueueNDRangeKernel(g.cmd_queue, g.kernel, 2, nil, global, local))
 	cl.check(cl.Finish(g.cmd_queue))
 }
 
 read_buffer :: proc(storage: []f32) {
-	cl.check(
-		cl.EnqueueReadBuffer(
-			g.cmd_queue,
-			g.result_buf,
-			true,
-			0,
-			g.size * 3 * size_of(f32),
-			raw_data(storage),
-			0,
-			nil,
-			nil,
-		),
-	)
+	cl.check(cl.EnqueueReadBuffer(g.cmd_queue, g.result_buf, true, 0, f32, storage))
 }
 
 parse_to_rgb :: proc(image_buf: []image.RGB_Pixel, data: []f32, start_point: u32, size: u32) {

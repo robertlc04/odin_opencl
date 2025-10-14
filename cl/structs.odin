@@ -88,6 +88,11 @@ KernelInfo_t :: struct {
 	name:      string,
 	ref_count: u32, // Ref: https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clGetKernelInfo.html#_footnotedef_1
 }
+KernelArg_t :: struct {
+	value: any,
+	type:  typeid,
+}
+
 KernelArgsInfo_t :: struct {
 	type:      string,
 	name:      string,
