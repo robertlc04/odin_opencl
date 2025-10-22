@@ -1,15 +1,11 @@
 package cl
 
-import "base:intrinsics"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
-import "core:mem"
 import "core:os"
-import "core:path/filepath"
 import "core:reflect"
 import "core:strings"
-import "core:sys/info"
 
 // Just one mode: Use directly the wrapper functions without abstractions layers for the user (easy too but a little repetitive)
 
@@ -873,8 +869,67 @@ write_buffer :: proc(
 	return
 }
 
+verify_kernel_arg_type :: proc(kernel: KernelArgsInfo_t, data_type: typeid) -> (err: ErrorCodes) {
+
+	val, ok := reflect.enum_from_name(
+		KernelArg_t,
+		strings.to_upper(strings.trim_suffix(kernel.type, "*"), context.temp_allocator),
+	)
+	if !ok do return .INVALID_ARG_VALUE
+
+	data_info := type_info_of(data_type)
+	cmp_info := KernelArgDesc_t[val]
+
+	if reflect.are_types_identical(cmp_info, data_info) do return
+
+	if reflect.type_kind(cmp_info.id) == reflect.type_kind(data_info.id) {
+		#partial switch val in cmp_info.variant {
+		case runtime.Type_Info_Integer:
+			{
+				if data_info.size < cmp_info.size do return .INVALID_KERNEL_ARGS
+				fmt.printfln(
+					"[Warning!] Be careful you are using a different signed type in  \"%s\", want's %s type",
+					kernel.name,
+					"signed" if val.signed else "unsigned",
+				)
+				return
+
+			}
+		case runtime.Type_Info_Float:
+			{
+				if cmp_info.size != data_info.size do return .INVALID_KERNEL_ARGS
+
+				// fmt.printfln(
+				// 	"[Warning!] Be careful you are using a different size float type in  \"%s\", want's f%d type",
+				// 	kernel.name,
+				// 	cmp_info.size * cmp_info.align,
+				// )
+				return
+			}
+		case:
+			return
+
+		}
+	}
+
+
+	return .INVALID_KERNEL_ARGS
+}
+
+// TODO: The type getted can be used as a token for make a type checker for the user
+// ref to: https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/scalarDataTypes.html
+set_kernel_args :: proc(kernel: Kernel_t, data: []Buffer_t) -> (err: ErrorCodes) {
+	if len(kernel.args) - len(data) != 0 do return .INVALID_ARG_SIZE
+
+	for info, i in kernel.args {
+		verify_kernel_arg_type(info, data[i].type) or_return
+		SetKernelArg(kernel.id, u32(i), type_of(data[i].id), &data[i].id) or_return
+	}
+
+	return
+}
+
 // TODO: Make SetArgKernel more friendly for usage or make a procedure how take arg: any and create a KernelArg_t.
-//      NOTE: The type getted can be used as a token for make a type checker for the user
 // TODO: Finish Program Procedure and Make Kernel Procedure 
 // TODO: Make in the Readme a explain of how use the callback procedures
 // TODO: Make event support and make a example using it

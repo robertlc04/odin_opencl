@@ -1,4 +1,6 @@
 package cl
+import "base:runtime"
+import "core:reflect"
 
 // Platform
 Platform_t :: struct {
@@ -88,10 +90,6 @@ KernelInfo_t :: struct {
 	name:      string,
 	ref_count: u32, // Ref: https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clGetKernelInfo.html#_footnotedef_1
 }
-KernelArg_t :: struct {
-	value: any,
-	type:  typeid,
-}
 
 KernelArgsInfo_t :: struct {
 	type:      string,
@@ -108,4 +106,79 @@ Buffer_t :: struct {
 
 Event_t :: struct {}
 EventInfo_t :: struct {}
+
+// make equivalence with: https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/scalarDataTypes.html
+KernelArg_t :: enum u64 {
+	// Scalar types
+	BOOL,
+	CHAR,
+	UNSIGNED_CHAR,
+	UCHAR,
+	SHORT,
+	UNSIGNED_SHORT,
+	USHORT,
+	INT,
+	UNSIGNED_INT,
+	UINT,
+	LONG,
+	UNSIGNED_LONG,
+	ULONG,
+	FLOAT,
+	DOUBLE,
+	HALF,
+	SIZE_T,
+	PTRDIFF_T,
+	INTPTR_T,
+	UINTPTR_T,
+	VOID,
+}
+// TODO: Improve needed
+// use reflect.Type_Info for this type of parsing maybe use a typeif as args?
+KernelArgDesc_t := #sparse[KernelArg_t]^runtime.Type_Info {
+	.BOOL           = type_info_of(bool),
+	.CHAR           = type_info_of(i8),
+	.UCHAR          = type_info_of(u8),
+	.UNSIGNED_CHAR  = type_info_of(u8),
+	.SHORT          = type_info_of(i16),
+	.USHORT         = type_info_of(u16),
+	.UNSIGNED_SHORT = type_info_of(u16),
+	.INT            = type_info_of(i32),
+	.UINT           = type_info_of(u32),
+	.UNSIGNED_INT   = type_info_of(u32),
+	.LONG           = type_info_of(i64),
+	.UNSIGNED_LONG  = type_info_of(u64),
+	.ULONG          = type_info_of(u64),
+	.FLOAT          = type_info_of(f32),
+	.DOUBLE         = type_info_of(f64),
+	.HALF           = type_info_of(f16),
+	.SIZE_T         = type_info_of(u64),
+	.PTRDIFF_T      = type_info_of(rawptr),
+	.INTPTR_T       = type_info_of(rawptr),
+	.UINTPTR_T      = type_info_of(uintptr),
+	.VOID           = type_info_of(rawptr),
+}
+
+Tokens: []string = {
+	"bool",
+	"char",
+	"unsigned_char",
+	"uchar",
+	"short",
+	"unsigned_short",
+	"ushort",
+	"int",
+	"unsigned_int",
+	"uint",
+	"long",
+	"unsigned_long",
+	"ulong",
+	"float",
+	"double",
+	"half",
+	"size_t",
+	"ptrdiff_t",
+	"intptr_t",
+	"uintptr_t",
+	"void",
+}
 
