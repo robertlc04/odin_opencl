@@ -3,14 +3,21 @@ package cl
 import "base:runtime"
 import "core:fmt"
 import "core:log"
+import "core:mem"
 import "core:os"
 import "core:reflect"
 import "core:strings"
+import "core:text/regex"
 
 // Just one mode: Use directly the wrapper functions without abstractions layers for the user (easy too but a little repetitive)
 
 // Platform
-get_available_platforms :: proc() -> (result: []Platform_t, err: ErrorCodes) {
+get_available_platforms :: proc(
+	allocator: mem.Allocator = context.temp_allocator,
+) -> (
+	result: []Platform_t,
+	err: ErrorCodes,
+) {
 
 	// Get Platforms
 	numPlatforms: u32
@@ -25,7 +32,7 @@ get_available_platforms :: proc() -> (result: []Platform_t, err: ErrorCodes) {
 	err = ErrorCodes(GetPlatformIDs(numPlatforms, &platforms[0], nil))
 	if err != ErrorCodes.SUCCESS do return nil, err
 
-	result = make([]Platform_t, numPlatforms, context.allocator)
+	result = make([]Platform_t, numPlatforms, allocator)
 
 	// Get the basic Information
 	for &platform, i in result {
@@ -39,10 +46,6 @@ get_available_platforms :: proc() -> (result: []Platform_t, err: ErrorCodes) {
 	}
 
 	return result, err
-}
-
-destroy_platforms :: proc(platforms: []Platform_t) {
-	delete(platforms)
 }
 
 @(private)
@@ -96,7 +99,7 @@ get_available_devices :: proc(
 	if err != .SUCCESS do return nil, err
 
 
-	result = make([]Device_t, numDevices, context.allocator)
+	result = make([]Device_t, numDevices, context.temp_allocator)
 
 
 	for &device, i in result {
@@ -130,7 +133,6 @@ destroy_devices :: proc(devices: []Device_t) {
 			check(err)
 		}
 	}
-	delete(devices)
 }
 
 @(private)
@@ -364,7 +366,7 @@ get_command_queue :: proc(
 ) {
 	// Get id
 
-	cmd = make([]CommandQueue_t, len(devices), context.allocator)
+	cmd = make([]CommandQueue_t, len(devices), context.temp_allocator)
 	for dev, i in devices {
 		cmd[i].id = CreateCommandQueueWithProperties(ctx.id, dev.id, properties, &err)
 		if err != .SUCCESS {
@@ -391,19 +393,6 @@ get_command_queue :: proc(
 
 	}
 
-
-	when ODIN_DEBUG {
-		for cmd_queue, i in cmd {
-			log.debug("========= Verify if informations are different ==========")
-			log.debugf("Created with:\nContext: %v\nDevice: %v", ctx.id, devices[i].id)
-			log.debugf(
-				"Actual Data:\nContext: %v\nDevice: %v",
-				cmd_queue.info.ctx_id,
-				cmd_queue.info.dev_id,
-			)
-		}
-	}
-
 	return
 }
 
@@ -415,7 +404,6 @@ destroy_command_queue :: proc(cmd_queue: []CommandQueue_t) {
 			check(err)
 		}
 	}
-	delete(cmd_queue)
 }
 
 // For now only full path
@@ -489,6 +477,7 @@ destroy_program :: proc(programs: []Program_t) {
 	// delete(programs)
 }
 
+@(private)
 get_program_info_single_field :: proc(
 	program: ^Program_t,
 	field: ProgramInfo,
@@ -522,6 +511,7 @@ get_program_info_single_field :: proc(
 }
 
 
+@(private)
 get_program_info_list_field :: proc(
 	program: ^Program_t,
 	field: ProgramInfo,
@@ -554,6 +544,7 @@ get_program_info_list_field :: proc(
 	return
 }
 
+@(private)
 get_program_build_info_single_field :: proc(
 	program: ^Program_t,
 	dev: Device_t,
@@ -656,6 +647,7 @@ get_kernels :: proc(program: ^Program_t) -> (err: ErrorCodes) {
 }
 
 
+@(private)
 get_kernel_info_single_field :: proc(
 	kernel: ^Kernel_t,
 	field: KernelInfo,
@@ -691,6 +683,7 @@ get_kernel_info_single_field :: proc(
 }
 
 
+@(private)
 get_kernel_info_list_field :: proc(
 	kernel: ^Kernel_t,
 	field: KernelInfo,
@@ -723,6 +716,7 @@ get_kernel_info_list_field :: proc(
 	return
 }
 
+@(private)
 get_kernel_args :: proc(kernel: ^Kernel_t) -> (err: ErrorCodes) {
 	numArgs: uint
 	err = GetKernelInfo(kernel.id, .NUM_ARGS, 0, nil, &numArgs)
@@ -754,6 +748,7 @@ get_kernel_args :: proc(kernel: ^Kernel_t) -> (err: ErrorCodes) {
 	return
 }
 
+@(private)
 get_kernel_arg_value :: proc(
 	kernel: Kernel_t,
 	index: u32,
@@ -780,6 +775,7 @@ get_kernel_arg_value :: proc(
 }
 
 // TODO: Make a general procedure like for the others
+@(private)
 get_kernel_arg_qualifier :: proc(
 	kernel: ^Kernel_t,
 	index: u32,
@@ -806,13 +802,14 @@ get_kernel_arg_qualifier :: proc(
 	return
 }
 
-// For now no properties available and no host_ptr gone be available :D
+// For now no properties and host_ptr are available :D
 // The T it's the type of the buffer must match the type of the kernel
 get_buffer :: proc(
 	ctx: Context_t,
 	flags: []MemFlags,
 	size: uint,
 	$T: typeid,
+	host_ptr: rawptr = nil,
 ) -> (
 	buffer: Buffer_t,
 	err: ErrorCodes,
@@ -820,9 +817,17 @@ get_buffer :: proc(
 	if ctx.id == nil do return {}, .INVALID_CONTEXT
 
 	buffer.flags = flags
-	buffer.id = CreateBuffer(ctx.id, flags, size_of(T) * size, nil, &err)
-	if err != .SUCCESS do return {}, err
-	buffer.size = size_of(T) * size
+	buffer.id = CreateBuffer(ctx.id, flags, size_of(typeid_of(T)) * size, host_ptr, &err)
+	if err != .SUCCESS {
+		if err == .INVALID_HOST_PTR {
+			log.debugf(
+				"You set a MEM_HOST flag in a invalid memory address.\n\tHost address: %p",
+				host_ptr,
+			)
+		}
+		return {}, err
+	}
+	buffer.size = size_of(typeid_of(T)) * size
 	buffer.type = T
 	return
 }
@@ -834,6 +839,8 @@ destroy_buffer :: proc(buffer: Buffer_t) -> (err: ErrorCodes) {
 }
 
 // No event supported for now
+// For personal choise i decide always return a slice instead of use a pointer just for simplicity 
+// Maybe this will change on the future
 read_buffer :: proc(
 	cmd: CommandQueue_t,
 	buffer: Buffer_t,
@@ -869,12 +876,26 @@ write_buffer :: proc(
 	return
 }
 
-verify_kernel_arg_type :: proc(kernel: KernelArgsInfo_t, data_type: typeid) -> (err: ErrorCodes) {
+@(private)
+// TODO: Verification if the type it's vectored so the value of the storages are sutiable
+// Maybe make custom vector types and make it use that for prevent the user make mistakes 
+verify_kernel_arg_type :: proc(kernel: KernelArgsInfo_t, arg: Buffer_t) -> (err: ErrorCodes) {
+	// log.debugf("Kernel info: %v", kernel)
+	// The arg match the needed vector if exist?
+	data_type := arg.type
+
+
+	// the capture always gone be 4
+	rex, ok2 := regex.create(`([a-zA-Z]+)(\d*)(\*?)`, {}, context.temp_allocator)
+	cap, ok3 := regex.match(rex, kernel.type)
+	cleaning_sufix :=
+		strings.concatenate({cap.groups[1], "n"}, context.temp_allocator) if len(cap.groups[2]) > 0 else cap.groups[1]
 
 	val, ok := reflect.enum_from_name(
 		KernelArg_t,
-		strings.to_upper(strings.trim_suffix(kernel.type, "*"), context.temp_allocator),
+		strings.to_upper(cleaning_sufix, context.temp_allocator),
 	)
+
 	if !ok do return .INVALID_ARG_VALUE
 
 	data_info := type_info_of(data_type)
@@ -886,7 +907,14 @@ verify_kernel_arg_type :: proc(kernel: KernelArgsInfo_t, data_type: typeid) -> (
 		#partial switch val in cmp_info.variant {
 		case runtime.Type_Info_Integer:
 			{
-				if data_info.size < cmp_info.size do return .INVALID_KERNEL_ARGS
+				if data_info.size < cmp_info.size {
+					fmt.printfln(
+						"[Error!] Using different size of type in  \"%s\", want's %d",
+						kernel.name,
+						cmp_info.size * cmp_info.align,
+					)
+					return .INVALID_KERNEL_ARGS
+				}
 				fmt.printfln(
 					"[Warning!] Be careful you are using a different signed type in  \"%s\", want's %s type",
 					kernel.name,
@@ -897,13 +925,15 @@ verify_kernel_arg_type :: proc(kernel: KernelArgsInfo_t, data_type: typeid) -> (
 			}
 		case runtime.Type_Info_Float:
 			{
-				if cmp_info.size != data_info.size do return .INVALID_KERNEL_ARGS
+				if cmp_info.size != data_info.size {
 
-				// fmt.printfln(
-				// 	"[Warning!] Be careful you are using a different size float type in  \"%s\", want's f%d type",
-				// 	kernel.name,
-				// 	cmp_info.size * cmp_info.align,
-				// )
+					fmt.printfln(
+						"[Error!] Using a different size float type in  \"%s\", want's f%d type",
+						kernel.name,
+						cmp_info.size * cmp_info.align,
+					)
+					return .INVALID_KERNEL_ARGS
+				}
 				return
 			}
 		case:
@@ -922,7 +952,7 @@ set_kernel_args :: proc(kernel: Kernel_t, data: []Buffer_t) -> (err: ErrorCodes)
 	if len(kernel.args) - len(data) != 0 do return .INVALID_ARG_SIZE
 
 	for info, i in kernel.args {
-		verify_kernel_arg_type(info, data[i].type) or_return
+		verify_kernel_arg_type(info, data[i]) or_return
 		SetKernelArg(kernel.id, u32(i), type_of(data[i].id), &data[i].id) or_return
 	}
 
