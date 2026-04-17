@@ -1,13 +1,14 @@
 package testing_abslayer
 
 
-import cl "../../cl"
+import cl "../../../cl"
 import "core:log"
 import "core:mem"
 
 // WARNING: There it's a problem with the driver so you can only use one platform at time
 
 main :: proc() {
+	// Debuging
 	context.logger = log.create_console_logger()
 	context.logger.options = {.Line, .Procedure, .Terminal_Color, .Short_File_Path}
 
@@ -27,6 +28,7 @@ main :: proc() {
 			mem.tracking_allocator_destroy(&track_allc)
 		}
 	}
+	// Debuging End
 
 	cl.load_opencl_procedures()
 	defer cl.unload_opencl_procedures()
@@ -34,40 +36,62 @@ main :: proc() {
 	platforms: []cl.Platform_t
 	ctx: cl.Context_t
 	device: []cl.Device_t
+	cmd: []cl.CommandQueue_t
 	program: cl.Program_t
 	err: cl.ErrorCodes
 
 	platforms, err = cl.get_available_platforms()
 	cl.check(err)
-	defer cl.destroy_platforms(platforms)
 
 	for platform, i in platforms {
 		if len(device) != 0 do break
-		device, err = cl.get_available_devices(platform, .CPU)
+		device, err = cl.get_available_devices(platform, .GPU)
 		cl.check(err)
 	}
 	defer cl.destroy_devices(device)
 
-	err = cl.get_context(&ctx, device, device_t = cl.DeviceType.CPU)
-	cl.check(err)
+	cl.check(cl.get_context(&ctx, device, device_t = cl.DeviceType.GPU))
 	defer cl.destroy_context(ctx)
-	cmd: []cl.CommandQueue_t
+
 	cmd, err = cl.get_command_queue(ctx, device)
 	cl.check(err)
 	defer cl.destroy_command_queue(cmd)
 
-	err = cl.get_program(ctx, device[0], &program, "./vector_add.cl")
-	cl.check(err)
+	cl.check(cl.get_program(ctx, device[0], &program, "./vector_add.cl"))
 	defer cl.destroy_program({program})
 
-	buf_a: cl.Buffer_t
-	buf_a, err = cl.get_buffer(ctx, {}, 10, f32)
+	buffers: []cl.Buffer_t = make([]cl.Buffer_t, 3, context.temp_allocator)
+
+	// Trying to use host_ptr data
+	data: [2][10]i32 = {{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, {11, 21, 31, 41, 51, 61, 71, 81, 91, 101}}
+
+
+	for &buf, i in buffers[:2] {
+		buf, err = cl.get_buffer(ctx, {.MEM_USE_HOST_PTR, .MEM_HOST_READ_ONLY}, 10, u32, &data[i])
+		log.debugf("Buffer %d: %v", i, buf)
+		cl.check(err)
+	}
+
+	buffers[2], err = cl.get_buffer(ctx, {.MEM_WRITE_ONLY}, 10, i32)
 	cl.check(err)
-	defer cl.destroy_buffer(buf_a)
 
-	data: []f32 = {1.432, 23.12, 921.23145, 1293.1234}
+	err = cl.set_kernel_args(program.kernels[0], buffers)
+	cl.check(err)
 
-	cl.write_buffer(cmd[0], buf_a, f32, data)
+	err = cl.EnqueueNDRangeKernel(cmd[0].id, program.kernels[0].id, 1, nil, {10}, nil)
+	cl.check(err)
+
+	err = cl.Finish(cmd[0].id)
+	cl.check(err)
+
+	ret, e := cl.read_buffer(cmd[0], buffers[2], true, 0, 10, i32)
+	cl.check(e)
+	log.debugf("Returned: %v", ret)
+
+	for buf in buffers {
+		err = cl.destroy_buffer(buf)
+		cl.check(err)
+	}
 
 	// log.debugf("Platform Data: %v\n", platforms)
 	// log.debugf("Device data: %v\n", device)

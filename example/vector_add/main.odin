@@ -61,14 +61,13 @@ main :: proc() {
 	log.debugf("Queue Size: %d", size)
 	log.debugf("Value Size: %d", value)
 
-	// TODO: Prepare the Kernel ALMOST THERE !!!!!
 	program: cl.Program
 	program_source := #load("vector_add.cl", cstring)
 
 
 	program_il := #load("output.spv", []u8)
-	// program = cl.CreateProgramWithIL(ocl_context, raw_data(program_il), len(program_il), &error)
-	program = cl.CreateProgramWithSource(ocl_context, 1, {program_source}, &error)
+	program = cl.CreateProgramWithIL(ocl_context, program_il, &error)
+	// program = cl.CreateProgramWithSource(ocl_context, 1, {program_source}, &error)
 
 	cl.check(error)
 	if program == nil do log.debug("Something Fail With Program Construction")
