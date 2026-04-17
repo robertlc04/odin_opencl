@@ -1,5 +1,7 @@
 package cl
 
+import "base:intrinsics"
+
 // Errors
 ErrorCodes :: enum {
 	/* Error Codes */

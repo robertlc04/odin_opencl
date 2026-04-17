@@ -896,7 +896,10 @@ verify_kernel_arg_type :: proc(kernel: KernelArgsInfo_t, arg: Buffer_t) -> (err:
 		strings.to_upper(cleaning_sufix, context.temp_allocator),
 	)
 
-	if !ok do return .INVALID_ARG_VALUE
+	if !ok {
+		when ODIN_DEBUG do debug_get_informations(arg, .INVALID_ARG_VALUE)
+		return .INVALID_ARG_VALUE
+	}
 
 	data_info := type_info_of(data_type)
 	cmp_info := KernelArgDesc_t[val]
@@ -941,8 +944,13 @@ verify_kernel_arg_type :: proc(kernel: KernelArgsInfo_t, arg: Buffer_t) -> (err:
 
 		}
 	}
+	when ODIN_DEBUG do log.debugf("Buffer data: %v", arg)
 
-
+	fmt.printfln(
+		"[Error!] Using a different. Want \"%v\" type. You provide \"%v\"",
+		cmp_info,
+		data_info,
+	)
 	return .INVALID_KERNEL_ARGS
 }
 

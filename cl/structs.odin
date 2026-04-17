@@ -132,7 +132,6 @@ KernelArg_t :: enum u64 {
 	UINTPTR_T,
 	VOID,
 
-	// TODO: MAKE VECTOR TYPES
 	// Vector Types
 	BOOLN,
 	CHARN,
@@ -175,6 +174,7 @@ KernelArgDesc_t := #partial #sparse[KernelArg_t]^runtime.Type_Info {
 	.INTPTR_T        = type_info_of(rawptr),
 	.UINTPTR_T       = type_info_of(uintptr),
 	.VOID            = type_info_of(rawptr),
+	// Vectors
 	.BOOLN           = type_info_of(bool),
 	.CHARN           = type_info_of(i8),
 	.UNSIGNED_CHARN  = type_info_of(u8),
@@ -191,29 +191,5 @@ KernelArgDesc_t := #partial #sparse[KernelArg_t]^runtime.Type_Info {
 	.FLOATN          = type_info_of(f32),
 	.DOUBLEN         = type_info_of(f64),
 	.HALFN           = type_info_of(f16),
-}
-
-Tokens: []string = {
-	"bool",
-	"char",
-	"unsigned_char",
-	"uchar",
-	"short",
-	"unsigned_short",
-	"ushort",
-	"int",
-	"unsigned_int",
-	"uint",
-	"long",
-	"unsigned_long",
-	"ulong",
-	"float",
-	"double",
-	"half",
-	"size_t",
-	"ptrdiff_t",
-	"intptr_t",
-	"uintptr_t",
-	"void",
 }
 
